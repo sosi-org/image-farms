@@ -1,4 +1,8 @@
 /*
+To run tests:
+node api-test.js
+
+Setup steps:
 # npm install hippie
 # https://docs.npmjs.com/getting-started/using-a-package.json
 
@@ -19,6 +23,7 @@ hippie()
 .base('http://localhost:5000')
 .get('/progimage.com/api/v1.0/all-local')
 .expectStatus(200)
+//.expectHeader('Content-Type', 'application/json; charset=utf-8')
 .end(function(err, res, body) {
   if (err) {
       console.log("Some error:");
