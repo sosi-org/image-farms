@@ -1,5 +1,8 @@
 #!ifarms/bin/python
-
+"""
+Microservice for images (api):
+storage, transformations, conversions.
+"""
 # Losely based on a previous toy project of mine: https://github.com/sosi-org/REST-practice
 
 from flask import Flask
@@ -21,7 +24,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    eurl = API_ENDPOINT_URL + "/all"
+    eurl = API_ENDPOINT_URL + "/local-all"
     return \
         "Welcome to ProgImage.com API.<br/>"+ \
         "See https://github.com/sosi-org/image-farms/blob/master/README.md<br/>"+ \
@@ -33,7 +36,7 @@ def not_found(error):
 
 
 # Not recommended in production. For test only
-@app.route(API_ENDPOINT_URL+'/all', methods=['GET'])
+@app.route(API_ENDPOINT_URL+'/local-all', methods=['GET'])
 def invoices_listall():
     long_long_list = ['img1.png', 'img2.jpg']
     return jsonify({'images': long_long_list})
