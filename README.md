@@ -24,3 +24,6 @@ Examples:
 http://localhost:5000/progimage.com/api/v1.0/all-local
 http://localhost:5000/progimage.com/api/v1.0/0/original
 http://localhost:5000/progimage.com/api/v1.0/0/jpeg
+http://localhost:5000/progimage.com/api/v1.0/0/gif
+
+Note that if original is gif, convertion to gif is a different image.
