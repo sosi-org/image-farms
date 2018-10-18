@@ -1,0 +1,15 @@
+{
+  "name": "image-api-tester",
+  "version": "1.0.0",
+  "description": "tests imagefarm api",
+  "main": "api-test.js",
+  "dependencies": {
+    "hippie": "^0.5.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "sohail",
+  "license": "ISC"
+}

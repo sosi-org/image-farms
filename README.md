@@ -16,6 +16,9 @@ git clone git@github.com:sosi-org/image-farms.git
 Steps for CI:
 ...
 
-Examples:
 
-http://localhost:5000/progimage.com/api/v1.0/local-all
+Manual testing:
+Insomnia: https://insomnia.rest/download/#linux
+
+Examples:
+http://localhost:5000/progimage.com/api/v1.0/all-local
