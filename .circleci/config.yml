@@ -49,7 +49,7 @@ jobs:
           command: |
             . ifarms/bin/activate
             # python manage.py test
-            python tests.py
+            python tests/test.py
 
       - store_artifacts:
           path: test-reports
