@@ -15,3 +15,7 @@ git clone git@github.com:sosi-org/image-farms.git
 
 Steps for CI:
 ...
+
+Examples:
+
+http://localhost:5000/progimage.com/api/v1.0/local-all
