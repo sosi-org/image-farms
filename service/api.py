@@ -25,7 +25,7 @@ def index():
     return \
         "Welcome to ProgImage.com API.<br/>"+ \
         "See https://github.com/sosi-org/image-farms/blob/master/README.md<br/>"+ \
-        "For full list: try: <a href=\""+ eurl + "\"> "+url+"</a>."
+        "For full list: try: <a href=\""+ eurl + "\"> "+eurl+"</a>."
 
 @app.errorhandler(404)
 def not_found(error):
