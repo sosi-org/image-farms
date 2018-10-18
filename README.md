@@ -2,7 +2,7 @@
 A practie using REST
 
 Continuous Integration state:
-CircleCI Badge [![CircleCI](https://circleci.com/gh/sosi-org/image-farms.svg?style=svg)](https://circleci.com/gh/sosi-org/image-farms)
+[![CircleCI](https://circleci.com/gh/sosi-org/image-farms.svg?style=svg)](https://circleci.com/gh/sosi-org/image-farms)
 
 ```
 mkdir image-farms && cd image-farms
@@ -12,3 +12,6 @@ python --version
 pip install flask
 git clone git@github.com:sosi-org/image-farms.git
 ```
+
+Steps for CI:
+...
