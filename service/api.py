@@ -15,9 +15,11 @@ from flask import request
 from flask import make_response  # for 404
 
 import datetime
+import json
+import imageio
+
 
 API_ENDPOINT_URL = "/progimage.com/api/v1.0"
-
 
 app = Flask(__name__)
 
@@ -42,9 +44,12 @@ def invoices_listall():
     long_long_list = ['img1.png', 'img2.jpg']
     return jsonify({'images': long_long_list})
 
-import json
 # used for download only
 EXTENTIONS = {'image/gif': 'gif', 'image/jpeg':'jpeg'}
+
+#used for converted images:
+MIME_LOOKUP = {'gif':'image/gif', 'jpeg':'image/jpeg'}
+
 
 def fetchlocal_mimetype(fileid, key='mimetype'):
     DEFAULT_MIMETYPE = "image/jpeg"
@@ -67,7 +72,7 @@ def fetchlocal_binary(fileid):
 def retrieve_original(imgid):
     # from flask import send_file
     if imgid == 0:
-        print("IMAGE 0000000000000000000")
+        print("Default image requested.")
         #def get_image(pid):
         #image_binary = read_image(pid)
         #bytes_read
@@ -90,13 +95,77 @@ def retrieve_original(imgid):
                 response.headers.set('Content-Disposition', 'attachment', filename=orig_filename)
 
             return response
-        except:
+        except Exception as err:
             # not really 404
-            abort(404)
+            #abort(404)
+            return make_response(jsonify({'error': repr(err)}), 404)
 
     else:
-        abort(404)
+        #abort(404)
+        return error404_response_image_notfound(imageid)
 # download  : as_attachment=True
+
+class ImageNotFound(Exception):
+    def __init__(self, imageid):
+        self.imageid = imageid
+
+def error404_response_image_notfound(imageid, exception=None):
+    if exception is not None:
+        return make_response(jsonify({'error': "image not found", "imageid": imageid, 'exception': repr(exception)}), 404)
+    return make_response(jsonify({'error': "image not found", "imageid": imageid}), 404)
+
+#upload: imageio can directly fetch it
+
+
+@app.route(API_ENDPOINT_URL+'/<int:imgid>/jpeg', methods=['GET'])
+def make_jpeg(imgid):
+    if imgid == 0:
+        print("Default image requested.")
+        fileid = "sample0000"
+        try:
+            image_format = 'jpeg'   # same as extention
+            #mimetype = MIME_LOOKUP[image_format]
+            #print("mimetype:", mimetype)
+            print("fetching binary")
+
+            original_image_binary = fetchlocal_binary(fileid)
+
+            print("imageIO")
+            im = imageio.imread(original_image_binary)
+            #print(im)
+            print("image read:", im.shape)
+
+            #local_filename
+            local_cached_filename = "imagestore/"+fileid+"/"+fileid+"."+image_format
+            #cached_name = ""+"."+image_format
+            print("writing: local_cached_filename:", local_cached_filename)
+
+            # remove alpha channel
+            im = im[:,:,:3]
+            imageio.imwrite(local_cached_filename, im)
+            # assumption: exntention, type, and imageio's extention are the same
+            print("imwrite()")
+
+            converted_binary = open(local_cached_filename, "rb").read()
+            print("read binary()")
+            response = make_response(converted_binary)
+            converted_mimetype = MIME_LOOKUP[image_format]
+            print("converted mimetype:", converted_mimetype)
+            response.headers.set('Content-Type', converted_mimetype)
+
+            return response
+        except Exception as err:
+            #abort(404)
+            #return make_response(jsonify({'error': repr(err)}), 404)
+            # error	"OSError('JPEG does not support alpha channel.',)"
+            return error404_response_image_notfound(imgid, err)
+        except ImageNotFound as imexc:
+            return error404_response_image_notfound(imgid, imexc)
+
+    else:
+        #abort(404)
+        return error404_response_image_notfound(imgid)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

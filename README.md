@@ -22,3 +22,5 @@ Insomnia: https://insomnia.rest/download/#linux
 
 Examples:
 http://localhost:5000/progimage.com/api/v1.0/all-local
+http://localhost:5000/progimage.com/api/v1.0/0/original
+http://localhost:5000/progimage.com/api/v1.0/0/jpeg
