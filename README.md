@@ -1,6 +1,8 @@
 # image-farms
 A practie using REST
 
+Continuous Integration state:
+CircleCI Badge [![CircleCI](https://circleci.com/gh/sosi-org/image-farms.svg?style=svg)](https://circleci.com/gh/sosi-org/image-farms)
 
 ```
 mkdir image-farms && cd image-farms
