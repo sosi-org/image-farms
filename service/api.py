@@ -213,25 +213,38 @@ def convert_to_format_and_respond(fileid, image_format):
         return error404_response_image_notfound(imgid, imexc)
 
 
+def file_id_from_imageid(imgid):
+    if imgid == 0:
+        fileid = "sample0000"
+        return fileid
+    else:
+        #return error404_response_image_notfound(imgid)
+        raise ImageNotFound(imgid)
+
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/jpeg', methods=['GET'])
 def convert_jpeg(imgid):
     #pre_image_lookup
-    if imgid == 0:
-        print("convertion requested.")
-        fileid = "sample0000"
-    else:
-        return error404_response_image_notfound(imgid)
+    #if imgid == 0:
+    #    print("convertion requested.")
+    #    fileid = "sample0000"
+    #else:
+    #    return error404_response_image_notfound(imgid)
+
+    print("convertion requested.")
+    fileid = file_id_from_imageid(imgid)
 
     image_format = 'jpeg'   # same as extention
     return convert_to_format_and_respond(fileid, 'jpeg')
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/gif', methods=['GET'])
 def convert_gif(imgid):
-    if imgid == 0:
-        print("convertion requested.")
-        fileid = "sample0000"
-    else:
-        return error404_response_image_notfound(imgid)
+    #if imgid == 0:
+    #    print("convertion requested.")
+    #    fileid = "sample0000"
+    #else:
+    #    return error404_response_image_notfound(imgid)
+
+    fileid = file_id_from_imageid(imgid)
 
     image_format = 'gif'   # same as extention
     return convert_to_format_and_respond(fileid, 'gif')
