@@ -24,18 +24,26 @@ API_ENDPOINT_URL = "/progimage.com/api/v1.0"
 app = Flask(__name__)
 
 
-@app.route('/')
-def index():
+def welcome_note():
     eurl = API_ENDPOINT_URL + "/all-local"
     return \
         "Welcome to ProgImage.com API.<br/>"+ \
         "See https://github.com/sosi-org/image-farms/blob/master/README.md<br/>"+ \
         "For full list: try: <a href=\""+ eurl + "\"> "+eurl+"</a>."
 
+def incorrect_usage_note():
+    #FIXME: too small.
+    return make_response("Incorrect usage.", 404)
+
+
+@app.route('/')
+def index():
+    return usage_note()
+
 
 @app.errorhandler(404)
-def not_found(error):
-    return make_response(jsonify({'error': 'Not found (Sosi)'}), 404)
+def not_found404(error):
+    return make_response(jsonify({'error': 'Not found..'}), 404)
 
 
 # Not recommended in production. For test only
@@ -227,6 +235,10 @@ def convert_gif(imgid):
 
     image_format = 'gif'   # same as extention
     return convert_to_format_and_respond(fileid, 'gif')
+
+@app.route(API_ENDPOINT_URL+'/<int:imgid>', methods=['GET'])
+def incorrect_usage1(imgid):
+    return incorrect_usage_note()
 
 
 if __name__ == '__main__':
