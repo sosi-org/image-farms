@@ -77,7 +77,7 @@ def fetchlocal_original_mimetype_fromcontent(fileid):
         #elif:
         #elif:
         else:
-            raise UnknownImageType(repr(fileid), excep=None)
+            raise UnknownImageType(imgid=repr(imgid), comment="ImageIO could not detect the original image type.")
         #return mimetype
 
 # fetchlocal_mimetype
@@ -103,12 +103,35 @@ def fetchlocal_binary(fileid):
 class ImageNotFound(Exception):
     def __init__(self, imageid):
         self.imageid = imageid
+    def response404(self):
+        return error404_response_image_notfound(self.imageid, self)
 
+# mess
 class UnknownImageType(Exception):
-    def __init__(self, info, excep=None):
-        self.info = info
-        if excep is not None:
-            self.excep = excep
+    #def __init__(self, info, excep=None):
+        #self.info = info
+        #if excep is not None:
+        #    self.excep = excep
+    def __init__(self, imgid, comment=None):
+        self.imgid = imgid
+        self.comment = comment
+
+    def response404(self, comment=None):
+        if comment is None:
+            #return error404_response_image_notfound(self.info, self.excep if self.excep is not None else self)
+            return error404_response_image_notfound(self.imgid)
+        else:
+            #return uierr.response404(comment="MIME type information could not be found from the orignal image file.")
+            #return make_response(jsonify({'error': repr(self.info), 'comment':"MIME type information could not be found from the orignal image file."}), 404)
+            return make_response(jsonify({'error': repr(self.imgid), 'comment':self.comment}), 404)
+
+
+class ImageHasNoMask(Exception):
+    def __init__(self, imageid):
+        self.imageid = imageid
+    def response404(self):
+         return make_response(jsonify({'error': "image has no mask/alpha channel.", "imageid": self.imageid}), 404)
+
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/original', methods=['GET'])
 def retrieve_original(imgid):
@@ -143,7 +166,8 @@ def retrieve_original(imgid):
 
         return response
     except UnknownImageType as uierr:
-        return make_response(jsonify({'error': repr(uierr), 'comment':"MIME type nformation could not be found from the orignal image file."}), 404)
+        return uierr.response404(imgid=imgid, comment="MIME type information could not be found from the orignal image file.")
+        #make_response(jsonify({'error': repr(uierr), 'comment':"MIME type information could not be found from the orignal image file."}), 404)
 
     except Exception as err:
         # not really 404
@@ -163,7 +187,49 @@ def error404_response_image_notfound(imageid, exception=None):
 #upload: imageio can directly fetch it
 
 
+
+def extract_mask(fileid):
+    try:
+        print("===========================================")
+        original_image_binary = fetchlocal_binary(fileid)
+        im = imageio.imread(original_image_binary)
+
+        image_format = 'png'
+        converted_mimetype = MIME_LOOKUP[image_format]
+
+        #local_filename
+        local_cached_filename = "imagestore/"+fileid+"/mask."+image_format
+
+
+        # remove alpha channel
+        if im.shape[2] >3:
+            mask = im[:,:,3]
+        else:
+            raise ImageHasNoMask(fileid)
+
+        imageio.imwrite(local_cached_filename, mask)
+        #todo: add metadata
+
+        converted_binary = open(local_cached_filename, "rb").read()
+        response = make_response(converted_binary)
+        response.headers.set('Content-Type', converted_mimetype)
+        return response
+
+    except ImageHasNoMask as ihnm:
+        return ihnm.response404() #make_response(jsonify({'error': "image not found", "imageid": imageid}), 404)
+
+    except ImageNotFound as imexc:
+        return imexc.response404() #error404_response_image_notfound(fileid, imexc)
+
+    except Exception as err:
+        #abort(404)
+        #return make_response(jsonify({'error': repr(err)}), 404)
+        # error	"OSError('JPEG does not support alpha channel.',)"
+        return error404_response_image_notfound(fileid, err)
+
+
 def convert_to_format_and_respond(fileid, image_format):
+    """ Note: I dont cache here. It is up to the browser and server to cache it."""
     try:
         print("fetching binary. ", fileid, image_format)
 
@@ -259,9 +325,18 @@ def convert_gif(imgid):
 def convert_png(imgid):
     fileid = file_id_from_imageid(imgid)
     image_format = 'png'   # same as extention
-    print(fileid, image_format, "=-=-=-=-=")
-    print(fileid, image_format, "*********")
+    #print(fileid, image_format, "=-=-=-=-=")
+    #print(fileid, image_format, "*********")
     return convert_to_format_and_respond(fileid, image_format)
+
+@app.route(API_ENDPOINT_URL+'/<int:imgid>/mask', methods=['GET'])
+def extract_mask_api(imgid):
+    print("imgid",imgid)
+    fileid = file_id_from_imageid(imgid)
+    print("imgid",imgid)
+    image_format = 'png'   # same as extention
+    return extract_mask(fileid)
+    #return convert_to_format_and_respond(fileid, image_format)
 
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>', methods=['GET'])
