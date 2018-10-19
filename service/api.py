@@ -53,10 +53,10 @@ def invoices_listall():
     return jsonify({'images': long_long_list})
 
 # used for download only
-EXTENTIONS = {'image/gif': 'gif', 'image/jpeg':'jpeg'}
+EXTENTIONS = {'image/gif': 'gif', 'image/jpeg':'jpeg', 'image/png':'png'}
 
 #used for converted images:
-MIME_LOOKUP = {'gif':'image/gif', 'jpeg':'image/jpeg'}
+MIME_LOOKUP = {'gif':'image/gif', 'jpeg':'image/jpeg', 'png':'image/png'}
 
 
 def fetchlocal_original_mimetype_fromcontent(fileid):
@@ -165,11 +165,15 @@ def error404_response_image_notfound(imageid, exception=None):
 
 def convert_to_format_and_respond(fileid, image_format):
     try:
-        print("fetching binary")
+        print("fetching binary. ", fileid, image_format)
 
         #original_mimetype = fetchlocal_original_mimetype_fromjson(fileid)
 
-        converted_mimetype = MIME_LOOKUP[image_format]
+        #converted_mimetype = MIME_LOOKUP.get(image_format, "UNKNOWN1")
+        #converted_mimetype = MIME_LOOKUP[image_format]
+        converted_mimetype = MIME_LOOKUP.get(image_format, None)
+        assert converted_mimetype is not None
+
         print("converted mimetype:", converted_mimetype)
 
         original_image_binary = fetchlocal_binary(fileid)
@@ -204,13 +208,15 @@ def convert_to_format_and_respond(fileid, image_format):
         response.headers.set('Content-Type', converted_mimetype)
 
         return response
+
+    except ImageNotFound as imexc:
+        return error404_response_image_notfound(fileid, imexc)
+
     except Exception as err:
         #abort(404)
         #return make_response(jsonify({'error': repr(err)}), 404)
         # error	"OSError('JPEG does not support alpha channel.',)"
-        return error404_response_image_notfound(imgid, err)
-    except ImageNotFound as imexc:
-        return error404_response_image_notfound(imgid, imexc)
+        return error404_response_image_notfound(fileid, err)
 
 
 def file_id_from_imageid(imgid):
@@ -234,7 +240,7 @@ def convert_jpeg(imgid):
     fileid = file_id_from_imageid(imgid)
 
     image_format = 'jpeg'   # same as extention
-    return convert_to_format_and_respond(fileid, 'jpeg')
+    return convert_to_format_and_respond(fileid, image_format)
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/gif', methods=['GET'])
 def convert_gif(imgid):
@@ -247,7 +253,16 @@ def convert_gif(imgid):
     fileid = file_id_from_imageid(imgid)
 
     image_format = 'gif'   # same as extention
-    return convert_to_format_and_respond(fileid, 'gif')
+    return convert_to_format_and_respond(fileid, image_format)
+
+@app.route(API_ENDPOINT_URL+'/<int:imgid>/png', methods=['GET'])
+def convert_png(imgid):
+    fileid = file_id_from_imageid(imgid)
+    image_format = 'png'   # same as extention
+    print(fileid, image_format, "=-=-=-=-=")
+    print(fileid, image_format, "*********")
+    return convert_to_format_and_respond(fileid, image_format)
+
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>', methods=['GET'])
 def incorrect_usage1(imgid):
