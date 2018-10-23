@@ -43,7 +43,8 @@ from custom_responses import *
 
 API_ENDPOINT_URL = "/progimage.com/api/v1.0"
 
-IMAGE_BASE = './imagestore/'
+# direct access discouraged:
+IMAGE_BASE = '../imagestore/'
 
 # self tests
 def deployment_self_tests():
@@ -112,8 +113,8 @@ def fetchlocal_original_mimetype_fromcontent(fileid):
     # todo: use imageio.get_reader()
     # get_meta_data()
 
-    #metadata_filename = "imagestore/"+fileid+"/"+"original.bin"
-    filename = "imagestore/"+fileid+"/"+ORIGINAL_BIN_FILENAME
+    #metadata_filename = "IMAGE_BASE + fileid+"/"+"original.bin"
+    filename = IMAGE_BASE + fileid+"/"+ORIGINAL_BIN_FILENAME
     with imageio.get_reader(filename) as r:
         md = r.get_meta_data()
         #md = get_metadata(fileid)
@@ -138,7 +139,7 @@ Test: metadata generation called only after (uploaded) file saved
 """
 
 def metadata_filename_from_fileid(fileid):
-    return "imagestore/"+fileid+"/"+"metadata.json"
+    return IMAGE_BASE + fileid+"/"+"metadata.json"
 
 def get_metadata(fileid):
     # fetchlocal_metadata()
@@ -181,7 +182,7 @@ def fetchlocal_original_mimetype_fromjson(fileid, key='mimetype'):
 
 
 def fetchlocal_binary(fileid):
-    filename = "imagestore/"+fileid+"/"+"original.bin"
+    filename = IMAGE_BASE + fileid+"/"+"original.bin"
     return open(filename, "rb").read()
 
 
@@ -254,7 +255,7 @@ def extract_mask(fileid):
         converted_mimetype = MIME_LOOKUP[image_format]
 
         #local_filename
-        local_cached_filename = "imagestore/"+fileid+"/mask."+image_format
+        local_cached_filename = IMAGE_BASE + fileid+"/mask."+image_format
 
 
         # remove alpha channel
@@ -311,7 +312,7 @@ def convert_to_format_and_respond(fileid, image_format):
             # do the conversion
 
             #local_filename
-            local_cached_filename = "imagestore/"+fileid+"/"+fileid+"."+image_format
+            local_cached_filename = IMAGE_BASE + fileid+"/"+fileid+"."+image_format
             #cached_name = ""+"."+image_format
             print("writing: local_cached_filename:", local_cached_filename)
 
