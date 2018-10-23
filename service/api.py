@@ -98,14 +98,15 @@ def invoices_listall():
     return jsonify({'images': long_long_list})
 
 
-
+#DEFAULT_IMAGE_NAME
+ORIGINAL_BIN_FILENAME = "original.bin"
 
 def fetchlocal_original_mimetype_fromcontent(fileid):
     # todo: use imageio.get_reader()
     # get_meta_data()
 
     #metadata_filename = "imagestore/"+fileid+"/"+"original.bin"
-    filename = "imagestore/"+fileid+"/"+"original.bin"
+    filename = "imagestore/"+fileid+"/"+ORIGINAL_BIN_FILENAME
     with imageio.get_reader(filename) as r:
         md = r.get_meta_data()
         #md = get_metadata(fileid)
@@ -338,15 +339,20 @@ imageid:  foldername
 """
 
 def file_id_from_imageid(imgid):
+    # assert int
+    assert (imgid+2)/2 == (imgid)/2+1, repr(imgid)
+
     if imgid == 0:
         fileid = "sample0000"
         return fileid
-    elif imgid == 12:
-        file_id = "00012"
-        return file_id
-    else:
-        #return error404_response_image_notfound(imgid)
-        raise ImageNotFound(imgid)
+    #elif imgid == 12:
+    #    file_id = "00012"
+    #    return file_id
+
+    #else:
+    #    #return error404_response_image_notfound(imgid)
+    #    raise ImageNotFound(imgid)
+    return str(imgid)
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/jpeg', methods=['GET'])
 def convert_jpeg(imgid):
@@ -417,8 +423,9 @@ def put_file():
 #from flask import Flask, flash, request, redirect, url_for
 import hashlib
 import struct
+import os
 
-def do_actual_upload(filename, binary_content):
+def do_actual_upload(filename, file_content_binary):
     print("doing the file:", filename)
     actual_filename = secure_filename(filename)
     del filename
@@ -426,47 +433,75 @@ def do_actual_upload(filename, binary_content):
     #exit()
     #return {}, "foldername"
 
-    print(type(binary_content))  # <class bytes>
+    print(type(file_content_binary))  # <class bytes>
     #os.path.join(app.config['UPLOAD_FOLDER'], filename)
     #image_id = [(fname, hashlib.sha256(file_as_bytes(open(fname, 'rb'))).digest()) for fname in fnamelst]
     #???????? file_content = file  # file_as_bytes(open(fname, 'rb'))
-    file_content = binary_content
+    file_content = file_content_binary
     image_sha256 = hashlib.sha256(file_content).digest()
     # b' .. ' -> sha256 -> hash object -> digest -> binary b'...'
     print(image_sha256)
+    #image_id = image_sha256[:8]
 
     s_compiled = struct.Struct('<L')  # 4 bytes    #L 	unsigned long 	integer 	4
-    hash_int_val = s_compiled.unpack_from(image_sha256)  # 4 bytes
-    return {'hash val':hash_int_val}, "foldername"
+    hash_int_val = s_compiled.unpack_from(image_sha256)[0]  # 4 bytes
+    #return {'hash val':hash_int_val}, "foldername"
 
-    image_id = image_sha256[:8]
-    print(image_id)
-    filename = file_id_from_imageid(image_id)
-    #filename = file_id_from_sha256(image_sha256)
-    file.save(actual_filename)  #really? a 'file' object?
+    image_id = hash_int_val
+    print("image_id image_id image_id:::",image_id)
+
+    def manual_cleanup(local_filename, local_foldername):
+        # unsafe
+        if os.path.exists(local_filename):
+            os.remove(local_filename)
+        if os.path.exists(local_foldername):
+            os.rmdir(local_foldername)
+        print("===================")
+        print(local_filename)
+        print(local_foldername)
+
+
+    # file_id is in fact folder_id
+    #local_filename
+    local_foldername = file_id_from_imageid(image_id)
+    #local_filename = file_id_from_sha256(image_sha256)
+    local_filename = './'+local_foldername+'/'+ORIGINAL_BIN_FILENAME
+    manual_cleanup(local_filename, local_foldername)
+
+    # clean
+    assert not os.path.exists(local_foldername) #not os.path.isdir(local_foldername)
+    os.makedirs(local_foldername, exist_ok=True)
+    # has to be empty
+    assert not os.path.exists(local_filename)
+
+    with open(local_filename, "wb") as fl:
+        #fl.save('./'+local_foldername+'/'+ORIGINAL_BIN_FILENAME)  #really? a 'file' object?
+        fl.write(file_content_binary)
+        log("WRITE successful.")
+
     #return redirect(url_for('uploaded_file',
     #                        filename=filename))
     #return "API UPLOADED"  # FIXME
+    log("file closed.", )
 
     def generate_metadata(file_content):
         # see get_metadata(fileid)
         pass
 
-    return {'blah':actual_filename}, "foldername"
+    return {'blah':actual_filename}, local_foldername
 
 
 # insomnia
 @app.route(API_ENDPOINT_URL+'/upload', methods=['POST'])
 def upload_file():
-    log("UPLOAD using POST")
+    log("UPLOAD using POST:")
     log("====================================")
 
-    print("req:::::::::::::", request)
-    print("request.files:", request.files)
-    #print(dir(request.files))
-    print("request:", request)
-    print("\n".join(dir(request)))
-    print("request.data:", request.data)
+    #print("req:::::::::::::", request)
+    ##print("request.files:", request.files)
+    #print("request:", request)
+    #print("\n".join(dir(request)))
+    #print("request.data:", request.data)
     binary_data = request.data
     #body = json.loads(request.data)   # the JSON object must be str, not 'bytes'
     #body = json.loads(request.data.decode('utf-8'))
@@ -476,7 +511,7 @@ def upload_file():
     #after using BSON in client:  request.data: b'\x07\x02\x00\x00\x05binary_content\x00\xc3\x01\x00\x00\x00\xff\xd8\xff\xe0\x00\x10JFIF...'
     body = bson.loads(request.data)
     #print("body", body.keys())
-    print("binary content", body['binary_content'])
+    #print("binary content", body['binary_content'])
     print("filename", body['filename'])
 
     binary_content = body['binary_content']
