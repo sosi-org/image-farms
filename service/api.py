@@ -30,6 +30,7 @@ class CODES:
     OK_CREATED = 201
     OK_FINE = 200
     ERROR_404 = 404
+ERROR_404 = CODES.ERROR_404
 
 KILO = 1024
 MEGA = KILO*KILO
@@ -158,11 +159,13 @@ def generate_metadata(fileid, original_name):
     #with file(metadata_filename, "wt") as f:
     #    f.save(json.dumps(metadata))
     #    f.close()
+    if os.path.exists(metadata_filename):
+        log_warn("metadata file exists", metadata_filename)
+
     with open(metadata_filename, "wb") as file:
         file.write(
             json.dumps(metadata)
         )
-
 
     #metadata = get_metadata(fileid)
 
@@ -417,8 +420,12 @@ def check_security(original_filename):
     # checks if a filename is secure (not very long, etc)
     return True
 
+# logging
 def log(message):
-    print("API server:", message)
+    print("api server:", message)
+
+def log_warn(message):
+    print("api server WARNING:", message)
 
 #def wrap_in_cathcers():
 #    pass
@@ -461,7 +468,11 @@ def do_actual_upload(filename, file_content_binary):
     image_id = hash_int_val
     print("image_id image_id image_id:::",image_id)
 
-    def manual_cleanup(local_filename, local_foldername):
+    def manual_cleanup(folderhash, filename):
+        #def manual_cleanup(local_filename, local_foldername):
+        local_foldername = foldername_from_folderhash(folderhash)
+        local_filename = local_foldername+'/'+filename
+
         # unsafe
         if os.path.exists(local_filename):
             os.remove(local_filename)
@@ -478,7 +489,8 @@ def do_actual_upload(filename, file_content_binary):
     local_foldername = foldername_from_folderhash(folderhash)
     #local_filename = file_id_from_sha256(image_sha256)
     local_filename = local_foldername+'/'+ORIGINAL_BIN_FILENAME
-    manual_cleanup(local_filename, local_foldername)
+    #manual_cleanup(local_filename, local_foldername)
+    manual_cleanup(folderhash, ORIGINAL_BIN_FILENAME)
 
     # clean
     assert not os.path.exists(local_foldername) #not os.path.isdir(local_foldername)
