@@ -5,6 +5,9 @@ storage, transformations, conversions.
 """
 # Losely based on a previous toy project of mine: https://github.com/sosi-org/REST-practice
 
+# ************************************************************
+# dependencies
+
 from flask import Flask
 
 from flask import jsonify
@@ -12,14 +15,42 @@ from flask import abort
 from flask import request
 
 
-from flask import make_response  # for 404
 
 import datetime
 import json
 import imageio
 
+#never call make_response. Always jsonify
+
+from flask import make_response  # for 404
+
+make_response_plain = make_response
+make_response = "Uncallable! Never call make_response. Always jsonify."
+def make_response_jsonified(content_dict, rest_code):
+    return make_response_plain(jsonify(content_dict), rest_code)
+
+# ************************************************************
+# *  config
 
 API_ENDPOINT_URL = "/progimage.com/api/v1.0"
+
+
+KILO = 1024
+MEGA = KILO*KILO
+GIGA = MEGA*KILO
+
+# code-time constant
+service_config = {
+    'max-size': MEGA,
+    'max-width': 10000,
+}
+
+# load-time (after deploy-time) constant
+service_config_state = {
+    'partition-id': 1,
+}
+
+# ************************************************************
 
 app = Flask(__name__)
 
@@ -33,7 +64,7 @@ def welcome_note():
 
 def incorrect_usage_note():
     #FIXME: too small.
-    return make_response("Incorrect usage.", 404)
+    return make_response_jsonified({'error':"Incorrect usage."}, 404)
 
 
 @app.route('/')
@@ -43,7 +74,7 @@ def index():
 
 @app.errorhandler(404)
 def not_found404(error):
-    return make_response(jsonify({'error': 'Not found..'}), 404)
+    return make_response_jsonified({'error': 'Not found..'}, 404)
 
 
 # Not recommended in production. For test only
@@ -158,8 +189,9 @@ class UnknownImageType(Exception):
             return error404_response_image_notfound(self.imgid)
         else:
             #return uierr.response404(comment="MIME type information could not be found from the orignal image file.")
-            #return make_response(jsonify({'error': repr(self.info), 'comment':"MIME type information could not be found from the orignal image file."}), 404)
-            return make_response(jsonify({'error': repr(self.imgid), 'comment':self.comment}), 404)
+            #return make_response_jsonified({'error': repr(self.info), 'comment':"MIME type information could not be found from the orignal image file."}, 404)
+            # FIXME: call error404_xxxx....
+            return make_response_jsonified({'error': repr(self.imgid), 'comment':self.comment}, 404)
 
 
 class ImageAlreadyExists(Exception):
@@ -169,23 +201,9 @@ class ImageAlreadyExists(Exception):
         self.hashcode = hashcode
     def response404(self):
         #respondize. stringify. jsonize. repr. 404repr. respond_repr
-         return make_response(jsonify({'error': "image already exists.", "imagename": self.imagename, "hashcode": self.hashcode}), 404)
+         return make_response_jsonified({'error': "image already exists.", "imagename": self.imagename, "hashcode": self.hashcode}, 404)
 
 
-KILO = 1024
-MEGA = KILO*KILO
-GIGA = MEGA*KILO
-
-# code-time constant
-service_config = {
-    'max-size': MEGA,
-    'max-width': 10000,
-}
-
-# load-time (after deploy-time) constant
-service_config_state = {
-    'partition-id': 1,
-}
 
 class ImageTooLarge(Exception):
     """  """
@@ -194,17 +212,17 @@ class ImageTooLarge(Exception):
         self.volume_bytes = volume_bytes
     def response404(self):
         #respondize. stringify. jsonize. repr. 404repr. respond_repr
-         return make_response(jsonify({
+         return make_response_jsonified({
              'error': "image too large. maximum %d (bytes), %d x %d" % (service_config['max-size'], service_config['max-width'], service_config['max-width'] ),
              "size_pair": "%d x %d" % self.size_pair,
              "volume_bytes": self.volume_bytes
-         }), 404)
+         }, 404)
 
 class ImageHasNoMask(Exception):
     def __init__(self, imageid):
         self.imageid = imageid
     def response404(self):
-         return make_response(jsonify({'error': "image has no mask/alpha channel.", "imageid": self.imageid}), 404)
+         return make_response_jsonified({'error': "image has no mask/alpha channel.", "imageid": self.imageid}, 404)
 
 
 # to implement:
@@ -239,7 +257,7 @@ def retrieve_original(imgid):
         #extention = EXTENTIONS[original_mimetype]
 
         image_binary = fetchlocal_binary(fileid)
-        response = make_response(image_binary)
+        response = make_response_plain(image_binary)
         response.headers.set('Content-Type', original_mimetype)
 
         download = False
@@ -250,12 +268,12 @@ def retrieve_original(imgid):
         return response
     except UnknownImageType as uierr:
         return uierr.response404(imgid=imgid, comment="MIME type information could not be found from the orignal image file.")
-        #make_response(jsonify({'error': repr(uierr), 'comment':"MIME type information could not be found from the orignal image file."}), 404)
+        #make_response_jsonified({'error': repr(uierr), 'comment':"MIME type information could not be found from the orignal image file."}, 404)
 
     except Exception as err:
         # not really 404
         #abort(404)
-        return make_response(jsonify({'error': repr(err)}), 404)
+        return make_response_jsonified({'error': repr(err)}, 404)
 
 
 # download  : as_attachment=True
@@ -264,11 +282,10 @@ def retrieve_original(imgid):
 def error404_response_image_notfound(imageid, exception=None):
     # abort(404)
     if exception is not None:
-        return make_response(jsonify({'error': "image not found", "imageid": imageid, 'exception': repr(exception)}), 404)
-    return make_response(jsonify({'error': "image not found", "imageid": imageid}), 404)
+        return make_response_jsonified({'error': "image not found", "imageid": imageid, 'exception': repr(exception)}, 404)
+    return make_response_jsonified({'error': "image not found", "imageid": imageid}, 404)
 
 #upload: imageio can directly fetch it
-
 
 
 def extract_mask(fileid):
@@ -294,19 +311,19 @@ def extract_mask(fileid):
         #todo: add metadata
 
         converted_binary = open(local_cached_filename, "rb").read()
-        response = make_response(converted_binary)
+        response = make_response_plain(converted_binary)
         response.headers.set('Content-Type', converted_mimetype)
         return response
 
     except ImageHasNoMask as ihnm:
-        return ihnm.response404() #make_response(jsonify({'error': "image not found", "imageid": imageid}), 404)
+        return ihnm.response404() #make_response_jsonified({'error': "image not found", "imageid": imageid}, 404)
 
     except ImageNotFound as imexc:
         return imexc.response404() #error404_response_image_notfound(fileid, imexc)
 
     except Exception as err:
         #abort(404)
-        #return make_response(jsonify({'error': repr(err)}), 404)
+        #return make_response_jsonified({'error': repr(err)}, 404)
         # error	"OSError('JPEG does not support alpha channel.',)"
         return error404_response_image_notfound(fileid, err)
 
@@ -353,7 +370,7 @@ def convert_to_format_and_respond(fileid, image_format):
 
         converted_binary = open(local_cached_filename, "rb").read()
         print("read binary()")
-        response = make_response(converted_binary)
+        response = make_response_plain(converted_binary)
         response.headers.set('Content-Type', converted_mimetype)
 
         return response
@@ -363,7 +380,7 @@ def convert_to_format_and_respond(fileid, image_format):
 
     except Exception as err:
         #abort(404)
-        #return make_response(jsonify({'error': repr(err)}), 404)
+        #return make_response_jsonified({'error': repr(err)}, 404)
         # error	"OSError('JPEG does not support alpha channel.',)"
         return error404_response_image_notfound(fileid, err)
 
@@ -446,7 +463,7 @@ def put_file():
     #err = NotImplemented("PUT", moreinfo="Use DELETE and then POST, instead.)
     #return err.response404()
     #abort(404)
-    return make_response("Use DELETE and then POST, instead.", 404)
+    return make_response_jsonified({'error': "Use DELETE and then POST, instead."}, 404)
 
 
 #from flask import Flask, flash, request, redirect, url_for
@@ -458,32 +475,52 @@ def upload_file():
     log("UPLOAD using POST")
     log("====================================")
 
+    print("req:::::::::::::", request)
+    print(dir(request))
+    print(request.files)
+    #print(dir(request.files))
+
+    #import ipdb
+    #ipdb.set_trace(context=5)
+
+    #print(dir(request.lists))
+
     # check if the post request has the file part
     if 'file' not in request.files:
 
         #flash('No file part')
         #return redirect(request.url)
-        return make_response("NO 'file' section in request.", 404)
-    print("FILE:::::::::::::", file)
+        return make_response_jsonified({'error': "NO 'file' section in request."}, 404)
+    print("FILE:::::::::::::1", file)
 
     file = request.files['file']
     # if user does not select file, browser also
     # submit an empty part without filename
+    print("FILE:::::::::::::2")
 
     if file.filename == '':
-        flash('No selected file')
-        return redirect(request.url)
+        #flash('No selected file')
+        #return redirect(request.url)
+        return make_response_jsonified({'error':"no filename"}, 404)
+
+    print("FILE:::::::::::::3")
 
     if not file:
-        return
+        return make_response_jsonified({'error':"no file"}, 404)
+
+    print("FILE:::::::::::::4")
 
     if not allowed_file(file.filename):
-        return
+        #return
+        return make_response_jsonified({'error': "bad filename"}, 404)
+
+    print("FILE:::::::::::::5")
 
     filename = secure_filename(file.filename)
     #os.path.join(app.config['UPLOAD_FOLDER'], filename)
     #image_id = [(fname, hashlib.sha256(file_as_bytes(open(fname, 'rb'))).digest()) for fname in fnamelst]
-    file_content = file  # file_as_bytes(open(fname, 'rb'))
+    #???????? file_content = file  # file_as_bytes(open(fname, 'rb'))
+    file_content = file.binary_content
     image_sha256 = hashlib.sha256(file_content).digest()
     image_id = image_sha256[:8]
     print(image_id)
@@ -498,10 +535,10 @@ def upload_file():
         # see get_metadata(fileid)
         pass
 
-    response = make_response(jsonify({
-        meta_data
-
-    }), CODES.OK_CREATED)
+    #content metadata (almost like a cache of one aspect of the contents: image format, and maybe width, height)
+    response = make_response_jsonified({
+        'metadata': meta_data,
+    }, CODES.OK_CREATED)
     #{'ContentType': JSON_MIME}
     response.headers.set('Content-Type', JSON_MIME)
 
