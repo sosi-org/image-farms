@@ -19,6 +19,7 @@ import datetime
 import json
 import imageio
 import bson  # binary json. Used for uploading binary files.
+import os
 
 
 from image_exceptions import *
@@ -42,7 +43,12 @@ from custom_responses import *
 
 API_ENDPOINT_URL = "/progimage.com/api/v1.0"
 
+IMAGE_BASE = './imagestore/'
 
+# self tests
+def deployment_self_tests():
+    # Makes sure we are running from the correct folder
+    assert os.path.exists(IMAGE_BASE)
 
 # code-time constant
 service_config = {
@@ -63,6 +69,9 @@ EXTENTIONS = {'image/gif': 'gif', 'image/jpeg':'jpeg', 'image/png':'png'}
 #used for converted images:
 MIME_LOOKUP = {'gif':'image/gif', 'jpeg':'image/jpeg', 'png':'image/png'}
 
+
+#DEFAULT_IMAGE_NAME
+ORIGINAL_BIN_FILENAME = "original.bin"
 
 # ************************************************************
 
@@ -98,8 +107,6 @@ def invoices_listall():
     return jsonify({'images': long_long_list})
 
 
-#DEFAULT_IMAGE_NAME
-ORIGINAL_BIN_FILENAME = "original.bin"
 
 def fetchlocal_original_mimetype_fromcontent(fileid):
     # todo: use imageio.get_reader()
@@ -354,6 +361,10 @@ def file_id_from_imageid(imgid):
     #    raise ImageNotFound(imgid)
     return str(imgid)
 
+def foldername_from_folderhash(folderhash):
+    local_foldername = IMAGE_BASE + folderhash
+    return local_foldername
+
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/jpeg', methods=['GET'])
 def convert_jpeg(imgid):
     #pre_image_lookup
@@ -423,7 +434,6 @@ def put_file():
 #from flask import Flask, flash, request, redirect, url_for
 import hashlib
 import struct
-import os
 
 def do_actual_upload(filename, file_content_binary):
     print("doing the file:", filename)
@@ -463,9 +473,10 @@ def do_actual_upload(filename, file_content_binary):
 
     # file_id is in fact folder_id
     #local_filename
-    local_foldername = file_id_from_imageid(image_id)
+    folderhash = file_id_from_imageid(image_id)  # i.e. imagehash
+    local_foldername = foldername_from_folderhash(folderhash)
     #local_filename = file_id_from_sha256(image_sha256)
-    local_filename = './'+local_foldername+'/'+ORIGINAL_BIN_FILENAME
+    local_filename = local_foldername+'/'+ORIGINAL_BIN_FILENAME
     manual_cleanup(local_filename, local_foldername)
 
     # clean
@@ -477,12 +488,13 @@ def do_actual_upload(filename, file_content_binary):
     with open(local_filename, "wb") as fl:
         #fl.save('./'+local_foldername+'/'+ORIGINAL_BIN_FILENAME)  #really? a 'file' object?
         fl.write(file_content_binary)
-        log("WRITE successful.")
+        log("WRITE successful: "+ local_filename)
 
     #return redirect(url_for('uploaded_file',
     #                        filename=filename))
     #return "API UPLOADED"  # FIXME
     log("file closed.", )
+    dir()
 
     def generate_metadata(file_content):
         # see get_metadata(fileid)
@@ -598,4 +610,7 @@ def incorrect_usage1(imgid):
 
 
 if __name__ == '__main__':
+
+    deployment_self_tests()
+
     app.run(debug=True)
