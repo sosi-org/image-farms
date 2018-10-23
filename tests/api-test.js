@@ -104,10 +104,11 @@ function test_upload(file_name) {
     with_file_contents(file_name,function(content){
         console.log("uploading content:", content);
         //var f = fetch(API_BASE+API+'upload');
-        var body = {content:content};
+        var body = {content:content, filename1:file_name};
         //console.log(f);
         fetch(API_BASE+API+'upload', {
             method: 'POST',
+            // todo: use simple binary content type? no.
             body: JSON.stringify(body),
             headers: { 'Content-Type': 'application/json' },
             })

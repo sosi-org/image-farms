@@ -60,6 +60,15 @@ service_config_state = {
     'partition-id': 1,
 }
 
+# implementation consts
+
+# used for download only
+EXTENTIONS = {'image/gif': 'gif', 'image/jpeg':'jpeg', 'image/png':'png'}
+
+#used for converted images:
+MIME_LOOKUP = {'gif':'image/gif', 'jpeg':'image/jpeg', 'png':'image/png'}
+
+
 # ************************************************************
 
 app = Flask(__name__)
@@ -93,11 +102,6 @@ def invoices_listall():
     long_long_list = ['img1.png', 'img2.jpg']
     return jsonify({'images': long_long_list})
 
-# used for download only
-EXTENTIONS = {'image/gif': 'gif', 'image/jpeg':'jpeg', 'image/png':'png'}
-
-#used for converted images:
-MIME_LOOKUP = {'gif':'image/gif', 'jpeg':'image/jpeg', 'png':'image/png'}
 
 
 
