@@ -3,5 +3,5 @@
 
 source ifarms/bin/activate
 cd service
-python3 api.py &
+python3 api.py
 cd ..

@@ -4,7 +4,8 @@
   "description": "tests imagefarm api",
   "main": "api-test.js",
   "dependencies": {
-    "hippie": "^0.5.2"
+    "hippie": "^0.5.2",
+    "node-fetch": "^2.2.0"
   },
   "devDependencies": {},
   "scripts": {
