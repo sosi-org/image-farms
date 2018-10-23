@@ -121,14 +121,19 @@ def fetchlocal_original_mimetype_fromcontent(fileid):
         #md = get_metadata(fileid)
         print(md)
         """
+        GIF:
         {'version': b'GIF87a', 'extension': (b'NETSCAPE2.0', 27), 'loop': 0, 'duration': 10}
         """
-        if md['version'] == b'GIF87a':
+        if 'version' in md and md['version'] == b'GIF87a':
             return MIME_LOOKUP['gif']
-        #elif:
-        #elif:
-        #elif:
+        elif 'jfif_version' in md or 'jfif' in md:
+            """
+            JPEG:
+                {'jfif_version': (1, 1), 'dpi': (72, 72), 'jfif': 257, 'jfif_unit': 1, 'jfif_density': (72, 72)}
+            """
+            return MIME_LOOKUP['jpeg']
         else:
+            log_err("unknown type")
             raise UnknownImageType(imgid=repr(imgid), comment="ImageIO could not detect the original image type.")
         #return mimetype
     #throw image does not exist
@@ -139,12 +144,12 @@ Test: metadata generation called only after (uploaded) file saved
 
 """
 
-def metadata_filename_from_fileid(fileid):
-    return IMAGE_BASE + fileid+"/"+"metadata.json"
+def metadata_filename_from_folderhash(folderhash):
+    return IMAGE_BASE + folderhash+"/"+"metadata.json"
 
 def get_metadata(fileid):
     # fetchlocal_metadata()
-    metadata_filename = metadata_filename_from_fileid(fileid)
+    metadata_filename = metadata_filename_from_folderhash(fileid)
     meta_data_json = open(metadata_filename, "rt").read()
     metadata = json.loads(meta_data_json)
     return metadata
@@ -152,7 +157,7 @@ def get_metadata(fileid):
 
 def generate_metadata(fileid, original_name):
     """ from stored file.  original_name: uploaded name """
-    metadata_filename = metadata_filename_from_fileid(fileid)
+    metadata_filename = metadata_filename_from_folderhash(fileid)
     mimetype = fetchlocal_original_mimetype_fromcontent(fileid)
 
     metadata = {'orig-name':original_name, 'mimetype': mimetype}
@@ -427,6 +432,10 @@ def log(message):
 def log_warn(message):
     print("api server WARNING:", message)
 
+def log_err(message):
+    print("api server ERROR:", message)
+
+
 #def wrap_in_cathcers():
 #    pass
 
@@ -472,15 +481,20 @@ def do_actual_upload(filename, file_content_binary):
         #def manual_cleanup(local_filename, local_foldername):
         local_foldername = foldername_from_folderhash(folderhash)
         local_filename = local_foldername+'/'+filename
+        metadata_filename = metadata_filename_from_folderhash(folderhash)
+
+        print("===================removing:", local_filename, local_foldername)
 
         # unsafe
         if os.path.exists(local_filename):
             os.remove(local_filename)
+        if os.path.exists(metadata_filename):
+            os.remove(metadata_filename)
+
+
         if os.path.exists(local_foldername):
             os.rmdir(local_foldername)
         print("===================")
-        print(local_filename)
-        print(local_foldername)
 
 
     # file_id is in fact folder_id
@@ -507,12 +521,14 @@ def do_actual_upload(filename, file_content_binary):
     #                        filename=filename))
     #return "API UPLOADED"  # FIXME
     log("file closed.", )
-    dir()
+    #dir()  #?
 
-    def generate_metadata(file_content):
-        # see get_metadata(fileid)
-        pass
+    #def generate_metadata(file_content):
+    #    # see get_metadata(fileid)
+    #    pass
+    generate_metadata(folderhash, ORIGINAL_BIN_FILENAME)
 
+    assert actual_filename == metadata['filename']
     return {'blah':actual_filename}, local_foldername
 
 
