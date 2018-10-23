@@ -118,29 +118,20 @@ const BSON = require('bson');
 //const doc = BSON.deserialize(data);
 
 function test_upload(file_name) {
-    with_file_contents(file_name,function(content){
-        console.log("uploading content:", content);
-        //var f = fetch(API_BASE+API+'upload');
-        var body = {binary_content:content, filename:file_name};
-        // binary content {'data': [255, 216, ...], 'type': 'Buffer'}
+    with_file_contents(file_name,function(binary_content_buffer) {
+        // binary_content_buffer: <Buffer ...>
+        // binary_content {'data': [255, 216, ...], 'type': 'Buffer'}
+        var body = {binary_content: binary_content_buffer, filename:file_name};
 
-        //console.log(f);
         fetch(API_BASE+API+'upload', {
             method: 'POST',
-            // todo: use simple binary content type? no.
             body: BSON.serialize(body),
             headers: { 'Content-Type': 'application/json' },
             })
         .then(
             (response_promise) => {
-                //return response.json();
-                console.log("OK! response:");
-                //console.log(response_promise);
-                //console.log(response_promise.json());   // prints: Promise(...)
                 resp_text = response_promise.text();
-                console.log("resp_text", resp_text);   // prints: Promise( <pending> )
-                console.log("OK2");
-                //return response_promise.json();
+                //console.log("resp_text", resp_text);   // <pending>
                 return resp_text;
             },
             (rejection) => {
@@ -149,7 +140,7 @@ function test_upload(file_name) {
             }
         )
         .then((json_string) => {
-            console.log("ACTUAL JSON CONTENTS:");
+            //console.log("ACTUAL JSON CONTENTS:");
             console.log(json_string);
             var image_info = JSON.parse(json_string);
             /*
@@ -165,12 +156,13 @@ function test_upload(file_name) {
             global_image_hash = image_info['image-id'];
             var saved_fileformat = image_info['metadata']['mimetype'];
             var recovered_name = image_info['metadata']['orig-name'];
-            console.log("saved file format = ", saved_fileformat);
-            console.log("Remembered client-size name: ", recovered_name);
+            console.log("   Saved file format: ", saved_fileformat);
+            console.log("   Remembered client-size name: ", recovered_name);
             //assertions:
             //if (recovered_name != file_name)
             //    throw Error("test failed: saved_fileformat != file_name: "+recovered_name+" != "+file_name)
-            console.log("saved_fileformat versus file_name: ", recovered_name, " versus ", file_name)
+            //var basename = file_name.split('/').pop()
+            console.log("Comparison:        ", recovered_name, " <> ", file_name)
         })
         .catch(
              (err) =>
@@ -242,14 +234,17 @@ for (point in [
     hippie()
     .base(API_BASE)
     .get(API+NON_EXISTING_IMAGE_ID+'/original')
-    .expectStatus(200)
+    .expectStatus(404)  // correctly receive an error (REST error)
+    .end();
+    /*
     .end(function(err, res, body) {
       if (err) {
-          console.log("correctly sent an exception:", typeof err);
+          console.log("correctly received an exception:", typeof err, err);
       } else {
           throw new Exception("must have thrown error");
       }
     });
+    */
 }
 
 console.log("=====================");
