@@ -424,9 +424,17 @@ def upload_file():
     log("====================================")
 
     print("req:::::::::::::", request)
-    print(dir(request))
-    print(request.files)
+    print("request.files:", request.files)
     #print(dir(request.files))
+    print("request:", request)
+    print("\n".join(dir(request)))
+    print("request.data:", request.data)
+    binary_data = request.data
+    #body = json.loads(request.data)   # the JSON object must be str, not 'bytes'
+    body = json.loads(request.data.decode('utf-8'))
+    #print("body", body.keys())
+    print("binary content", body['binary_content'])
+    print("filename", body['filename'])
 
     #import ipdb
     #ipdb.set_trace(context=5)

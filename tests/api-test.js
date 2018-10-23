@@ -104,7 +104,9 @@ function test_upload(file_name) {
     with_file_contents(file_name,function(content){
         console.log("uploading content:", content);
         //var f = fetch(API_BASE+API+'upload');
-        var body = {content:content, filename1:file_name};
+        var body = {binary_content:content, filename:file_name};
+        // binary content {'data': [255, 216, ...], 'type': 'Buffer'}
+
         //console.log(f);
         fetch(API_BASE+API+'upload', {
             method: 'POST',
@@ -113,18 +115,33 @@ function test_upload(file_name) {
             headers: { 'Content-Type': 'application/json' },
             })
         .then(
-            (response) => {
+            (response_promise) => {
                 //return response.json();
                 console.log("OK! response:");
-                console.log(response.json());
+                //console.log(response_promise);
+                //console.log(response_promise.json());   // prints: Promise(...)
+                resp_text = response_promise.text();
+                console.log("resp_text", resp_text);   // prints: Promise( <pending> )
+                console.log("OK2");
+                //return response_promise.json();
+                return resp_text;
             },
             (rejection) => {
-                console.log("REST sent ERROR:", err);
+                console.log("REST sent ERROR(1):", rejection);
+                return rejection;
             }
         )
+        .then((json) => {
+            console.log("ACTUAL JSONCONTENTS:");
+            console.log(json);
+        })
         .catch(
              (err) =>
-            console.log("REST sent ERROR:", err)
+            console.log("REST sent back Exception(2):", err)
+            /*
+            fetch:
+                body used already for: http://localhost:5000/progimage.com/api/v1.0/upload
+            */
         );
     })
 }
