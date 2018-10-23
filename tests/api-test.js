@@ -43,7 +43,46 @@ hippie()
   //process.exit(0);
 });
 
+/*
+http://localhost:5000/progimage.com/api/v1.0/all-local
+http://localhost:5000/progimage.com/api/v1.0/0/original
+http://localhost:5000/progimage.com/api/v1.0/0/jpeg
+http://localhost:5000/progimage.com/api/v1.0/0/gif
+*/
 
+"Test original image";
+hippie()
+//.json()   // image files are not binary => don't use .json()
+.base(API_BASE)
+.get(API+'0/original')
+.expectStatus(200)
+.end(function(err, res, body) {
+  if (err) {
+      throw err;
+  }
+});
+
+hippie()
+//.json()   // image files are not binary => don't use .json()
+.base(API_BASE)
+.get(API+'0/jpeg')
+.expectStatus(200)
+.end(function(err, res, body) {
+  if (err) {
+      throw err;
+  }
+});
+
+hippie()
+//.json()   // image files are not binary => don't use .json()
+.base(API_BASE)
+.get(API+'0/gif')
+.expectStatus(200)
+.end(function(err, res, body) {
+  if (err) {
+      throw err;
+  }
+});
 
 const fs = require('fs');
 
@@ -63,42 +102,6 @@ function with_file_contents(file_name, content_callback) {
     });
 }
 
-function test_upload____failed_attempt(file_name) {
-    with_file_contents(file_name,function(content){
-        console.log("uploading content:", content);
-
-        // incorrect call (upload using other than POST) should result in 404
-        hippie()
-        .json()
-        .base(API_BASE)
-        .get(API+'upload')
-        .expectStatus(404)
-        .end()
-        // Not good practice:
-        .catch(function(){
-            console.log("caught");
-        });
-
-        // .auth('user', 'password')
-
-        hippie()
-        .json()
-        .base(API_BASE)
-        .send(content)
-        /*.send({ files: {
-            'binary_content': content,  // 'binary'
-            'filename': file_name,  // 'original-filename'
-        } })*/
-        .post(API+'upload')
-        .expectStatus(201)
-        .end()
-        .catch(function(ex) {
-            console.log("Exception caught: "+ex);
-        })
-
-
-    })
-}
 
 const BSON = require('bson');
 //const data = BSON.serialize(doc);
@@ -138,6 +141,26 @@ function test_upload(file_name) {
         .then((json_string) => {
             console.log("ACTUAL JSON CONTENTS:");
             console.log(json_string);
+            var image_info = JSON.parse(json_string);
+            /*
+            Example:
+                {
+                  "image-id": "1222777497",
+                  "metadata": {
+                    "mimetype": "image/jpeg",
+                    "orig-name": "images_tiny_butterfly.jpg"
+                  }
+                }
+            */
+            global_image_hash = image_info['image-id'];
+            var saved_fileformat = image_info['metadata']['mimetype'];
+            var recovered_name = image_info['metadata']['orig-name'];
+            console.log("saved file format = ", saved_fileformat);
+            console.log("Remembered client-size name: ", recovered_name);
+            //assertions:
+            //if (recovered_name != file_name)
+            //    throw Error("test failed: saved_fileformat != file_name: "+recovered_name+" != "+file_name)
+            console.log("saved_fileformat versus file_name: ", recovered_name, " versus ", file_name)
         })
         .catch(
              (err) =>

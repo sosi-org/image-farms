@@ -73,7 +73,7 @@ MIME_LOOKUP = {'gif':'image/gif', 'jpeg':'image/jpeg', 'png':'image/png'}
 
 
 #DEFAULT_IMAGE_NAME
-ORIGINAL_BIN_FILENAME = "original.bin"
+FIXEDNAME_ORIGINALBINARY = "original.bin"
 
 # ************************************************************
 
@@ -111,28 +111,24 @@ def invoices_listall():
 
 
 def fetchlocal_original_mimetype_fromcontent(fileid):
-    # todo: use imageio.get_reader()
-    # get_meta_data()
-
-    #metadata_filename = "IMAGE_BASE + fileid+"/"+"original.bin"
-    filename = IMAGE_BASE + fileid+"/"+ORIGINAL_BIN_FILENAME
+    """ Uses image.io to get the File Format NOT from the extention. Directly from the contents."""
+    filename = IMAGE_BASE + fileid+"/"+FIXEDNAME_ORIGINALBINARY
     with imageio.get_reader(filename) as r:
         md = r.get_meta_data()
-        #md = get_metadata_locally(fileid)
         print(md)
-        """
-        GIF:
-        {'version': b'GIF87a', 'extension': (b'NETSCAPE2.0', 27), 'loop': 0, 'duration': 10}
-        """
         if 'version' in md and md['version'] == b'GIF87a':
             log("GIF")
+            """
+            GIF:
+            {'version': b'GIF87a', 'extension': (b'NETSCAPE2.0', 27), 'loop': 0, 'duration': 10}
+            """
             return MIME_LOOKUP['gif']
         elif 'jfif_version' in md or 'jfif' in md:
+            log("JPEG")
             """
             JPEG:
                 {'jfif_version': (1, 1), 'dpi': (72, 72), 'jfif': 257, 'jfif_unit': 1, 'jfif_density': (72, 72)}
             """
-            log("JPEG")
             return MIME_LOOKUP['jpeg']
         else:
             log_err("unknown type")
@@ -479,8 +475,8 @@ def do_actual_upload(original_clientside_filename, file_content_binary):
     #local_filename
     folderhash = file_id_from_imageid(image_id)  # i.e. imagehash
     local_foldername = foldername_from_folderhash(folderhash)
-    local_filename = local_foldername+'/'+ORIGINAL_BIN_FILENAME
-    manual_cleanup(folderhash, ORIGINAL_BIN_FILENAME)
+    local_filename = local_foldername+'/'+FIXEDNAME_ORIGINALBINARY
+    manual_cleanup(folderhash, FIXEDNAME_ORIGINALBINARY)
 
     # clean
     assert not os.path.exists(local_foldername) #not os.path.isdir(local_foldername)
@@ -489,22 +485,21 @@ def do_actual_upload(original_clientside_filename, file_content_binary):
     assert not os.path.exists(local_filename)
 
     with open(local_filename, "wb") as fl:
-        #fl.save('./'+local_foldername+'/'+ORIGINAL_BIN_FILENAME)  #really? a 'file' object?
+        #fl.save('./'+local_foldername+'/'+FIXEDNAME_ORIGINALBINARY)  #really? a 'file' object?
         fl.write(file_content_binary)
         log("WRITE successful: "+ local_filename)
     log("file closed.", )
 
-    # no need for this! it is completely secure! We use a fixed name (ORIGINAL_BIN_FILENAME) to store the file.
+    # no need for this! it is completely secure! We use a fixed name (FIXEDNAME_ORIGINALBINARY) to store the file.
     original_clientside_filename_secured = secure_filename(original_clientside_filename)
     del original_clientside_filename
 
     generate_metadata(folderhash, original_clientside_filename_secured)
     metadata = get_metadata_locally(folderhash)
     # actual_filename ='original.bin' is NOT metadata['orig-name']
-    return metadata, local_foldername
+    return metadata, folderhash
 
 
-# insomnia
 @app.route(API_ENDPOINT_URL+'/upload', methods=['POST'])
 def upload_file():
     log("UPLOAD using POST:")
@@ -513,11 +508,12 @@ def upload_file():
     body = bson.loads(request.data)
     binary_content = body['binary_content']
     filename = body['filename']
-    meta_data, folder_name = do_actual_upload(filename, binary_content)
+    meta_data, folderhash = do_actual_upload(filename, binary_content)
 
     #content metadata (almost like a cache of one aspect of the contents: image format, and maybe width, height)
     response = make_response_jsonified({
         'metadata': meta_data,
+        'image-id': folderhash,
     }, CODES.OK_CREATED)
     response.headers.set('Content-Type', JSON_MIME)
     return response
