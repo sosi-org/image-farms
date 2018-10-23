@@ -88,7 +88,7 @@ def welcome_note():
 
 def incorrect_usage_note():
     #FIXME: too small.
-    return make_response_jsonified({'error':"Incorrect usage."}, 404)
+    return make_response_jsonified({'error':"Incorrect usage."}, ERROR_404)
 
 
 @app.route('/')
@@ -96,9 +96,9 @@ def index():
     return usage_note()
 
 
-@app.errorhandler(404)
+@app.errorhandler(ERROR_404)
 def not_found404(error):
-    return make_response_jsonified({'error': 'Not found..'}, 404)
+    return make_response_jsonified({'error': 'Not found..'}, ERROR_404)
 
 
 # Not recommended in production. For test only
@@ -208,7 +208,7 @@ def retrieve_original(imgid):
         # image_id
         fileid = "sample0000"
     else:
-        #abort(404)
+        #abort(ERROR_404)
         return error404_response_image_notfound(imgid)
 
     try:
@@ -230,12 +230,12 @@ def retrieve_original(imgid):
         return response
     except UnknownImageType as uierr:
         return uierr.response404(imgid=imgid, comment="MIME type information could not be found from the orignal image file.")
-        #make_response_jsonified({'error': repr(uierr), 'comment':"MIME type information could not be found from the orignal image file."}, 404)
+        #make_response_jsonified({'error': repr(uierr), 'comment':"MIME type information could not be found from the orignal image file."}, ERROR_404)
 
     except Exception as err:
         # not really 404
-        #abort(404)
-        return make_response_jsonified({'error': repr(err)}, 404)
+        #abort(ERROR_404)
+        return make_response_jsonified({'error': repr(err)}, ERROR_404)
 
 
 # download  : as_attachment=True
@@ -273,14 +273,14 @@ def extract_mask(fileid):
         return response
 
     except ImageHasNoMask as ihnm:
-        return ihnm.response404() #make_response_jsonified({'error': "image not found", "imageid": imageid}, 404)
+        return ihnm.response404() #make_response_jsonified({'error': "image not found", "imageid": imageid}, ERROR_404)
 
     except ImageNotFound as imexc:
         return imexc.response404() #error404_response_image_notfound(fileid, imexc)
 
     except Exception as err:
-        #abort(404)
-        #return make_response_jsonified({'error': repr(err)}, 404)
+        #abort(ERROR_404)
+        #return make_response_jsonified({'error': repr(err)}, ERROR_404)
         # error	"OSError('JPEG does not support alpha channel.',)"
         return error404_response_image_notfound(fileid, err)
 
@@ -336,8 +336,8 @@ def convert_to_format_and_respond(fileid, image_format):
         return error404_response_image_notfound(fileid, imexc)
 
     except Exception as err:
-        #abort(404)
-        #return make_response_jsonified({'error': repr(err)}, 404)
+        #abort(ERROR_404)
+        #return make_response_jsonified({'error': repr(err)}, ERROR_404)
         # error	"OSError('JPEG does not support alpha channel.',)"
         return error404_response_image_notfound(fileid, err)
 
@@ -428,8 +428,8 @@ def put_file():
     log("ERROR")
     #err = NotImplemented("PUT", moreinfo="Use DELETE and then POST, instead.)
     #return err.response404()
-    #abort(404)
-    return make_response_jsonified({'error': "Use DELETE and then POST, instead."}, 404)
+    #abort(ERROR_404)
+    return make_response_jsonified({'error': "Use DELETE and then POST, instead."}, ERROR_404)
 
 
 #from flask import Flask, flash, request, redirect, url_for
@@ -542,7 +542,7 @@ def upload_file():
 
         #flash('No file part')
         #return redirect(request.url)
-        return make_response_jsonified({'error': "NO 'file' section in request."}, 404)
+        return make_response_jsonified({'error': "NO 'file' section in request."}, ERROR_404)
     print("FILE:::::::::::::1", file)
 
     file = request.files['file']
@@ -553,18 +553,18 @@ def upload_file():
     if file.filename == '':
         #flash('No selected file')
         #return redirect(request.url)
-        return make_response_jsonified({'error':"no filename"}, 404)
+        return make_response_jsonified({'error':"no filename"}, ERROR_404)
 
     print("FILE:::::::::::::3")
 
     if not file:
-        return make_response_jsonified({'error':"no file"}, 404)
+        return make_response_jsonified({'error':"no file"}, ERROR_404)
 
     print("FILE:::::::::::::4")
 
     if not allowed_file(file.filename):
         #return
-        return make_response_jsonified({'error': "bad filename"}, 404)
+        return make_response_jsonified({'error': "bad filename"}, ERROR_404)
 
     print("FILE:::::::::::::5")
     """
