@@ -356,7 +356,6 @@ def foldername_from_folderhash(folderhash):
 
 
 
-
 def convert_jpeg(imgid):
 
     print("convertion requested.")

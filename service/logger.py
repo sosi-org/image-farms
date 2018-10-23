@@ -20,36 +20,59 @@ CWHITE  = '\33[37m'
 logger_lock = threading.Lock()
 global logger_lock
 
-def log(message):
+def log(message, *a,**kw):
+    check_none_brutal(a)
+    check_none_brutal(kw)
+
     #async with logger_lock:
     global logger_lock
     logger_lock.acquire()
-    print(C_PLAIN)
+    print(C_PLAIN, end="")
     if True:
-        print(C_PLAIN)
-        print("api server:", message)
+        print(CGREEN, end="")
+        print("Log: api server: ", end="")
+        print(C_PLAIN, end="")
+        print(message)
     print('',end='',flush=True)
     logger_lock.release()
 
-def log_warn(message):
+def log_warn(message, *a,**kw):
+    check_none_brutal(a)
+    check_none_brutal(kw)
+
     #async with logger_lock:
     global logger_lock
     logger_lock.acquire()
-    print(C_PLAIN)
+    print(C_PLAIN, end="")
     if True:
-        print(CYELLOW)
-        print("api server WARNING:", message)
+        print(CGREEN, end="")
+        print("Log: api server WARNING: ", end="")
+        print(CYELLOW, end="")
+        print(message, end="")
         print(C_PLAIN)
     print('',end='',flush=True)
     logger_lock.release()
 
-def log_err(message):
+def log_err(message, *a,**kw):
+    check_none_brutal(a)
+    check_none_brutal(kw)
     #async with logger_lock:
     global logger_lock
     logger_lock.acquire()
     if True:
-        print(CRED)
-        print("1api server ERROR:", message)
+        print(CGREEN, end="")
+        print("Log: api server ERROR: ", end="")
+        print(CRED, end="")
+        #print("api server ERROR:      ", C_PLAIN, message)
+        print(message, end="")
+        if  False:
+            #r = "\n",join(reduce(traceback.extract_stack()))
+            r = traceback.extract_stack()
+            #print(r)
+            ctr = 0
+            for l in r:
+                ctr += 1
+                print(ctr, l)
         if False:
             """
             r = traceback.extract_stack()
@@ -62,3 +85,12 @@ def log_err(message):
         print(C_PLAIN)
     print('',end='',flush=True)
     logger_lock.release()
+
+
+def check_none_brutal(a):
+    pass
+    #""" Makes sure the usage of log() is itself correct."""
+    #if not a == () and not  a == {} and not (type(a) == list and len(a)==0 ):
+    #    if a is not None:
+    #        print(CRED, "too many arguments", a)
+    #        exit(1)

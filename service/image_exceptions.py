@@ -11,7 +11,7 @@ class Respond404ableException(Exception):
         super().__init__(*ka,**kw)
         #The error field (Readable info for API user)
         #self.error = error
-        log_err(self)
+        log_err(type(self))
 
     def response404(self):
         raise NotImplemented()

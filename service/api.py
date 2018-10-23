@@ -137,11 +137,12 @@ def retrieve_original(imgid):
         return uierr.response404(imgageid=imgid, comment="MIME type information could not be found from the orignal image file.")
         #make_response_jsonified({'error': repr(uierr), 'comment':"MIME type information could not be found from the orignal image file."}, ERROR_404)
 
+    """
     except Exception as err:
         # not really 404
         #abort(ERROR_404)
         return make_response_jsonified({'error': repr(err)}, ERROR_404)
-
+    """
 
 # download  : as_attachment=True
 
@@ -239,6 +240,8 @@ def put_file():
 
 @app.route(API_ENDPOINT_URL+'/upload', methods=['POST'])
 def upload_file():
+    # log_err("during upload: ", repr("ex"))
+
     log("UPLOADing using POST:")
     try:
         #after using BSON in client:  request.data: b'\x07\x02\x00\x00\x05binary_content\x00\xc3\x01\x00\x00\x00\xff\xd8\xff\xe0\x00\x10JFIF...'
@@ -256,12 +259,15 @@ def upload_file():
         return response
 
     except Respond404ableException as ex:
+        log_err("during upload: " + repr(ex))
         #return err.response404(imageid=imgid, comment="MIME type information could not be found from the orignal image file.")
         return make_response_jsonified({'error': "Use DELETE and then POST, instead."}, ERROR_404)
 
+    """
     except Exception as err:
-        log_err(err)
+        log_err("free exception" + repr(err) + "blah")
         return make_response_jsonified({'error': err, 'exception': err}, ERROR_404)
+    """
 
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>', methods=['GET'])
