@@ -118,19 +118,21 @@ def fetchlocal_original_mimetype_fromcontent(fileid):
     filename = IMAGE_BASE + fileid+"/"+ORIGINAL_BIN_FILENAME
     with imageio.get_reader(filename) as r:
         md = r.get_meta_data()
-        #md = get_metadata(fileid)
+        #md = get_metadata_locally(fileid)
         print(md)
         """
         GIF:
         {'version': b'GIF87a', 'extension': (b'NETSCAPE2.0', 27), 'loop': 0, 'duration': 10}
         """
         if 'version' in md and md['version'] == b'GIF87a':
+            log("GIF")
             return MIME_LOOKUP['gif']
         elif 'jfif_version' in md or 'jfif' in md:
             """
             JPEG:
                 {'jfif_version': (1, 1), 'dpi': (72, 72), 'jfif': 257, 'jfif_unit': 1, 'jfif_density': (72, 72)}
             """
+            log("JPEG")
             return MIME_LOOKUP['jpeg']
         else:
             log_err("unknown type")
@@ -147,9 +149,9 @@ Test: metadata generation called only after (uploaded) file saved
 def metadata_filename_from_folderhash(folderhash):
     return IMAGE_BASE + folderhash+"/"+"metadata.json"
 
-def get_metadata(fileid):
+def get_metadata_locally(folderhash):
     # fetchlocal_metadata()
-    metadata_filename = metadata_filename_from_folderhash(fileid)
+    metadata_filename = metadata_filename_from_folderhash(folderhash)
     meta_data_json = open(metadata_filename, "rt").read()
     metadata = json.loads(meta_data_json)
     return metadata
@@ -167,12 +169,14 @@ def generate_metadata(fileid, original_name):
     if os.path.exists(metadata_filename):
         log_warn("metadata file exists", metadata_filename)
 
-    with open(metadata_filename, "wb") as file:
+    log(repr(metadata))
+
+    with open(metadata_filename, "wt") as file:
         file.write(
             json.dumps(metadata)
         )
-
-    #metadata = get_metadata(fileid)
+    #metadata = get_metadata_locally(fileid)
+    return
 
 # fetchlocal_mimetype
 def fetchlocal_original_mimetype_fromjson(fileid, key='mimetype'):
@@ -181,7 +185,7 @@ def fetchlocal_original_mimetype_fromjson(fileid, key='mimetype'):
     # todo: use imageio.get_reader()
     # get_meta_data()
     try:
-        metadata = get_metadata(fileid)
+        metadata = get_metadata_locally(fileid)
         fieldname = key
         mimetype = metadata[fieldname]
         return mimetype #, EXTENTIONS[mimetype]
@@ -524,12 +528,12 @@ def do_actual_upload(filename, file_content_binary):
     #dir()  #?
 
     #def generate_metadata(file_content):
-    #    # see get_metadata(fileid)
+    #    # see get_metadata_locally(fileid)
     #    pass
     generate_metadata(folderhash, ORIGINAL_BIN_FILENAME)
-
-    assert actual_filename == metadata['filename']
-    return {'blah':actual_filename}, local_foldername
+    metadata = get_metadata_locally(folderhash)
+    # actual_filename ='original.bin' is NOT metadata['orig-name']
+    return metadata, local_foldername
 
 
 # insomnia
@@ -614,7 +618,7 @@ def upload_file():
     #return "API UPLOADED"  # FIXME
 
     def generate_metadata(file_content):
-        # see get_metadata(fileid)
+        # see get_metadata_locally(fileid)
         pass
     """
 
