@@ -131,9 +131,9 @@ function test_upload(file_name) {
                 return rejection;
             }
         )
-        .then((json) => {
-            console.log("ACTUAL JSONCONTENTS:");
-            console.log(json);
+        .then((json_string) => {
+            console.log("ACTUAL JSON CONTENTS:");
+            console.log(json_string);
         })
         .catch(
              (err) =>
