@@ -31,18 +31,27 @@ import imageio
 import os
 
 """
-#FIXME  remove this:
-import os
 
 
 JSON_MIME='application/json'
 
+#from enum import Enum, unique
+
 class CODES:
-    OK_CREATED = 201
-    OK_FINE = 200
+    OK_CREATED_201 = 201
+    OK_FINE200 = 200
     ERROR_404 = 404
+
 ERROR_404 = CODES.ERROR_404
 
+# Enum not used. It is slow.
+REST_POST = 'POST'
+REST_DELETE ='DELETE'
+REST_GET = 'GET'
+REST_PUT = 'PUT'
+REST_PATCH = 'PATCH'
+REST_OPTIONS ='OPTIONS'
+REST_HEAD = 'HEAD'
 
 
 from custom_responses import *
@@ -228,7 +237,8 @@ from logger import *
 #def wrap_in_excp_cathcers():
 #    pass
 
-@app.route(API_ENDPOINT_URL+'/upload', methods=['PUT', 'GET', 'DELETE'])
+
+@app.route(API_ENDPOINT_URL+'/upload', methods=['PUT', 'GET', 'DELETE', 'PATH', 'OPTIONS'])
 def put_file():
     log_err("no PUT")
     #err = NotImplemented("PUT", moreinfo="Use DELETE and then POST, instead.)
@@ -254,7 +264,7 @@ def upload_file():
         response = make_response_jsonified({
             'metadata': meta_data,
             'image-id': folderhash,
-        }, CODES.OK_CREATED)
+        }, CODES.OK_CREATED_201)
         response.headers.set('Content-Type', JSON_MIME)
         return response
 
