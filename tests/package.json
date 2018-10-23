@@ -4,6 +4,7 @@
   "description": "tests imagefarm api",
   "main": "api-test.js",
   "dependencies": {
+    "bson": "^4.0.0-rc5",
     "hippie": "^0.5.2",
     "node-fetch": "^2.2.0"
   },

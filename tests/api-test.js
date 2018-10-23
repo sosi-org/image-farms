@@ -100,6 +100,10 @@ function test_upload____failed_attempt(file_name) {
     })
 }
 
+const BSON = require('bson');
+//const data = BSON.serialize(doc);
+//const doc = BSON.deserialize(data);
+
 function test_upload(file_name) {
     with_file_contents(file_name,function(content){
         console.log("uploading content:", content);
@@ -111,7 +115,7 @@ function test_upload(file_name) {
         fetch(API_BASE+API+'upload', {
             method: 'POST',
             // todo: use simple binary content type? no.
-            body: JSON.stringify(body),
+            body: BSON.serialize(body),
             headers: { 'Content-Type': 'application/json' },
             })
         .then(

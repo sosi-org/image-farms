@@ -18,7 +18,7 @@ from flask import request
 import datetime
 import json
 import imageio
-
+import bson  # binary json. Used for uploading binary files.
 
 
 from image_exceptions import *
@@ -417,6 +417,31 @@ def put_file():
 #from flask import Flask, flash, request, redirect, url_for
 import hashlib
 
+def do_actual_upload(filename, binary_content):
+    print("doing the file:", filename)
+    filename = secure_filename(filename)
+    print("I feel fine.")
+    #exit()
+    return {}, "foldername"
+    #os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    #image_id = [(fname, hashlib.sha256(file_as_bytes(open(fname, 'rb'))).digest()) for fname in fnamelst]
+    #???????? file_content = file  # file_as_bytes(open(fname, 'rb'))
+    file_content = binary_content
+    image_sha256 = hashlib.sha256(file_content).digest()
+    image_id = image_sha256[:8]
+    print(image_id)
+    filename = file_id_from_imageid(image_id)
+    #filename = file_id_from_sha256(image_sha256)
+    file.save(filename)  #really? a 'file' object?
+    #return redirect(url_for('uploaded_file',
+    #                        filename=filename))
+    #return "API UPLOADED"  # FIXME
+
+    def generate_metadata(file_content):
+        # see get_metadata(fileid)
+        pass
+
+
 # insomnia
 @app.route(API_ENDPOINT_URL+'/upload', methods=['POST'])
 def upload_file():
@@ -431,11 +456,21 @@ def upload_file():
     print("request.data:", request.data)
     binary_data = request.data
     #body = json.loads(request.data)   # the JSON object must be str, not 'bytes'
-    body = json.loads(request.data.decode('utf-8'))
+    #body = json.loads(request.data.decode('utf-8'))
+    #body = bson.BSON.decode(request.data)
+    #body = bson.decode_object(request.data)
+
+    #after using BSON in client:  request.data: b'\x07\x02\x00\x00\x05binary_content\x00\xc3\x01\x00\x00\x00\xff\xd8\xff\xe0\x00\x10JFIF...'
+    body = bson.loads(request.data)
     #print("body", body.keys())
     print("binary content", body['binary_content'])
     print("filename", body['filename'])
 
+    binary_content = body['binary_content']
+    filename = body['filename']
+    meta_data, folder_name = do_actual_upload(filename, binary_content)
+
+    """
     #import ipdb
     #ipdb.set_trace(context=5)
 
@@ -471,7 +506,9 @@ def upload_file():
         return make_response_jsonified({'error': "bad filename"}, 404)
 
     print("FILE:::::::::::::5")
+    """
 
+    """
     filename = secure_filename(file.filename)
     #os.path.join(app.config['UPLOAD_FOLDER'], filename)
     #image_id = [(fname, hashlib.sha256(file_as_bytes(open(fname, 'rb'))).digest()) for fname in fnamelst]
@@ -490,6 +527,7 @@ def upload_file():
     def generate_metadata(file_content):
         # see get_metadata(fileid)
         pass
+    """
 
     #content metadata (almost like a cache of one aspect of the contents: image format, and maybe width, height)
     response = make_response_jsonified({
@@ -503,7 +541,7 @@ def upload_file():
     # maximum number
     # global counter
     #https://pythonhosted.org/Flask-Uploads/
-    pass
+    return response
 
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>', methods=['GET'])
