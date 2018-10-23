@@ -34,11 +34,13 @@ hippie()
 .expectStatus(200)
 //.expectHeader('Content-Type', 'application/json; charset=utf-8')
 .end(function(err, res, body) {
+  //console.log("body0",body);
   if (err) {
       console.log("Some error:");
       console.log(err);
       throw err;
   }
+  //console.log("body",body);
   console.log("Fine");
   //process.exit(0);
 });
@@ -50,7 +52,7 @@ http://localhost:5000/progimage.com/api/v1.0/0/jpeg
 http://localhost:5000/progimage.com/api/v1.0/0/gif
 */
 
-"Test original image";
+"Test the preset image (imageid=0)";
 hippie()
 //.json()   // image files are not binary => don't use .json()
 .base(API_BASE)
@@ -58,9 +60,13 @@ hippie()
 .expectStatus(200)
 .end(function(err, res, body) {
   if (err) {
+      console.log("===========================");
+      console.log("body2",body);
+      console.log(err);
       throw err;
   }
 });
+
 
 hippie()
 //.json()   // image files are not binary => don't use .json()
@@ -69,9 +75,11 @@ hippie()
 .expectStatus(200)
 .end(function(err, res, body) {
   if (err) {
+      console.log(err);
       throw err;
   }
 });
+
 
 hippie()
 //.json()   // image files are not binary => don't use .json()
@@ -80,6 +88,7 @@ hippie()
 .expectStatus(200)
 .end(function(err, res, body) {
   if (err) {
+      //console.log("body2",body);
       throw err;
   }
 });
@@ -93,6 +102,7 @@ function with_file_contents(file_name, content_callback) {
     //File exists:
     fs.readFile(file_name, function read(err, data) {
         if (err) {
+            console.log("body2",body);
             throw err;
         }
 
@@ -219,6 +229,28 @@ function test_upload(fs, file_name) {
     });
 };
 */
+
+
+NON_EXISTING_IMAGE_ID = '123123'
+
+for (point in [
+        API+NON_EXISTING_IMAGE_ID+'/original',
+        API+NON_EXISTING_IMAGE_ID+'/gif',
+        API+NON_EXISTING_IMAGE_ID+'/jpeg',
+    ])
+{
+    hippie()
+    .base(API_BASE)
+    .get(API+NON_EXISTING_IMAGE_ID+'/original')
+    .expectStatus(200)
+    .end(function(err, res, body) {
+      if (err) {
+          console.log("correctly sent an exception:", typeof err);
+      } else {
+          throw new Exception("must have thrown error");
+      }
+    });
+}
 
 console.log("=====================");
 console.log("A calm end.");

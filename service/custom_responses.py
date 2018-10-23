@@ -11,7 +11,9 @@ import json
 from flask import make_response  # for 404
 
 make_response_plain = make_response
+
 make_response = "Uncallable! Never call make_response. Always jsonify."
+
 def make_response_jsonified(content_dict, rest_code):
     if rest_code == 404:
         assert 'error' in content_dict
