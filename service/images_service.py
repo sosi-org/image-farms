@@ -166,7 +166,7 @@ def retrieve_original(imgid):
     #original_mimetype = fetchlocal_original_mimetype_fromjson(fileid)
     original_mimetype = fetchlocal_original_mimetype_fromcontent(fileid)
 
-    print("original mimetype:", original_mimetype)
+    log("Retrieving original image. Original mimetype: " + original_mimetype)
     #extention = EXTENTIONS[original_mimetype]
 
     image_binary = fetchlocal_binary(fileid)
@@ -187,6 +187,48 @@ def retrieve_original(imgid):
     """
 
 
+class data_invariants:
+    #data_consistency_invariants
+    @staticmethod
+    def consistency_invariance02(local_filename, local_foldername):
+        #consistency_check02
+        return (os.path.exists(local_filename) and  os.path.exists(local_foldername)) or (not os.path.exists(local_filename) and not os.path.exists(local_foldername))
+
+class data_consistency_checks:
+    @staticmethod
+    def check02(local_filename, local_foldername):
+        """ If the original.bin is not there, there should be nothing there. In fact there should be no folder!. Already rmdir()ed."""
+        if not data_invariants.consistency_invariance02(local_filename, local_foldername):
+            raise ImplementationError("consistency: "+repr((local_filename, local_foldername)))
+        #if filesize(FIXEDNAME_ORIGINALBINARY) == 0:
+        #    raise DataConsistencyError
+
+    @staticmethod
+    def image_id(folderhash):
+        local_foldername = foldername_from_folderhash(folderhash)
+        local_filename = local_foldername+'/'+FIXEDNAME_ORIGINALBINARY
+        data_consistency_checks.check02(local_filename, local_foldername)
+
+
+def manual_cleanup(folderhash):
+    #def manual_cleanup(local_filename, local_foldername):
+    filename=FIXEDNAME_ORIGINALBINARY
+
+    local_foldername = foldername_from_folderhash(folderhash)
+    local_filename = local_foldername+'/'+filename
+    metadata_filename = metadata_filename_from_folderhash(folderhash)
+
+    # unsafe
+    if os.path.exists(local_filename):
+        os.remove(local_filename)
+    if os.path.exists(metadata_filename):
+        os.remove(metadata_filename)
+
+    if os.path.exists(local_foldername):
+        os.rmdir(local_foldername)
+    if os.path.exists(local_foldername):
+        #raise InternalDataConsistencyError()
+        raise ImplementationError("consistency: folder cannot be removed. Possibly non-empty.")
 
 @staticmethod
 def do_actual_upload(original_clientside_filename, file_content_binary):
@@ -198,7 +240,7 @@ def do_actual_upload(original_clientside_filename, file_content_binary):
     file_content = file_content_binary
     image_sha256 = hashlib.sha256(file_content).digest()
     # b' .. ' -> sha256 -> hash object -> digest -> binary b'...'
-    print(image_sha256)
+    log("sha256 hash="+str(image_sha256))
     #image_id = image_sha256[:8]
 
     s_compiled = struct.Struct('<L')  # 4 bytes    #L 	unsigned long 	integer 	4
@@ -206,23 +248,11 @@ def do_actual_upload(original_clientside_filename, file_content_binary):
     #return {'hash val':hash_int_val}, "foldername"
 
     image_id = hash_int_val
-    print("image_id image_id image_id:::",image_id)
-
-    def manual_cleanup(folderhash, filename):
-        #def manual_cleanup(local_filename, local_foldername):
-        local_foldername = foldername_from_folderhash(folderhash)
-        local_filename = local_foldername+'/'+filename
-        metadata_filename = metadata_filename_from_folderhash(folderhash)
-
-        # unsafe
-        if os.path.exists(local_filename):
-            os.remove(local_filename)
-        if os.path.exists(metadata_filename):
-            os.remove(metadata_filename)
+    log("Uploading: image_id:::"+str(image_id))
 
 
-        if os.path.exists(local_foldername):
-            os.rmdir(local_foldername)
+    data_consistency_checks.image_id(image_id)
+    #data_consistency_checks.check02(local_filename, local_foldername)
 
 
     # file_id is in fact folder_id
@@ -230,13 +260,19 @@ def do_actual_upload(original_clientside_filename, file_content_binary):
     folderhash = file_id_from_imageid(image_id)  # i.e. imagehash
     local_foldername = foldername_from_folderhash(folderhash)
     local_filename = local_foldername+'/'+FIXEDNAME_ORIGINALBINARY
-    manual_cleanup(folderhash, FIXEDNAME_ORIGINALBINARY)
+    manual_cleanup(folderhash)
 
-    # clean
-    assert not os.path.exists(local_foldername) #not os.path.isdir(local_foldername)
-    os.makedirs(local_foldername, exist_ok=True)
+    data_consistency_checks.image_id(image_id)
+    #data_consistency_checks.check02(local_filename, local_foldername)
+
     # has to be empty
-    assert not os.path.exists(local_filename)
+    # clean
+    if os.path.exists(local_filename) or \
+        os.path.exists(local_foldername): #not os.path.isdir(local_foldername):
+        raise ImageAlreadyExists(original_clientside_filename, folderhash)
+
+
+    os.makedirs(local_foldername, exist_ok=True)
 
     with open(local_filename, "wb") as fl:
         #fl.save('./'+local_foldername+'/'+FIXEDNAME_ORIGINALBINARY)  #really? a 'file' object?
@@ -252,6 +288,21 @@ def do_actual_upload(original_clientside_filename, file_content_binary):
     metadata = get_metadata_locally(folderhash)
     # actual_filename ='original.bin' is NOT metadata['orig-name']
     return metadata, folderhash
+
+
+def ignore(x):
+    pass
+
+def kill_image(folderhash, ownership_proof):
+    """
+    @param ownership_proof: An authentification & ownership proof or image idetinfication where there is right to access (and delete).
+    Can be a publickey + owner_id. Use metadata to store and check this.
+    """
+    ignore(ownership_proof)
+    data_consistency_checks.image_id(image_id)
+    manual_cleanup(folderhash)
+    data_consistency_checks.image_id(image_id)
+    #return 1
 
 
 @staticmethod
@@ -281,7 +332,7 @@ def extract_mask(fileid):
 
 @staticmethod
 def convert_to_format_and_respond(fileid, image_format):
-    print("fetching binary. ", fileid, image_format)
+    log("fetching binary file: "+ fileid + " for: " + image_format)
 
     """ Note: I dont cache here. It is up to the browser and server to cache it."""
 
@@ -292,14 +343,13 @@ def convert_to_format_and_respond(fileid, image_format):
     converted_mimetype = MIME_LOOKUP.get(image_format, None)
     assert converted_mimetype is not None
 
-    print("converted mimetype:", converted_mimetype)
+    log("converting to: mimetype: " + converted_mimetype)
 
     original_image_binary = fetchlocal_binary(fileid)
 
-    print("imageIO")
     im = imageio.imread(original_image_binary)
     #print(im)
-    print("image read:", im.shape)
+    log("image read: " + repr(im.shape))
 
     #if converted_mimetype != original_mimetype:
 
@@ -309,19 +359,19 @@ def convert_to_format_and_respond(fileid, image_format):
         #local_filename
         local_cached_filename = IMAGE_BASE + fileid+"/"+fileid+"."+image_format
         #cached_name = ""+"."+image_format
-        print("writing: local_cached_filename:", local_cached_filename)
+        log("writing: local_cached_filename:" + local_cached_filename)
 
 
         # remove alpha channel
         im = im[:,:,:3]
         imageio.imwrite(local_cached_filename, im)
         # assumption: exntention, type, and imageio's extention are the same
-        print("imwrite()")
+        log("imwrite() finished.")
     else:
         pass
 
     converted_binary = open(local_cached_filename, "rb").read()
-    print("read binary()")
+    log("read binary converted file.")
     return converted_binary, converted_mimetype
 
 
@@ -351,7 +401,7 @@ def file_id_from_imageid(imgid):
 
 @staticmethod
 def foldername_from_folderhash(folderhash):
-    local_foldername = IMAGE_BASE + folderhash
+    local_foldername = IMAGE_BASE + str(folderhash)
     return local_foldername
 
 
@@ -375,8 +425,6 @@ def convert_gif(imgid):
 def convert_png(imgid):
     fileid = file_id_from_imageid(imgid)
     image_format = 'png'   # same as extention
-    #print(fileid, image_format, "=-=-=-=-=")
-    #print(fileid, image_format, "*********")
     return convert_to_format_and_respond(fileid, image_format)
 
 def extract_mask_api(imgid):

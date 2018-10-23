@@ -15,6 +15,10 @@ from flask import jsonify
 from flask import request
 
 
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
+
 #import datetime
 #import json
 
@@ -60,7 +64,7 @@ from custom_responses import *
 # *  config
 
 API_ENDPOINT_URL = "/progimage.com/api/v1.0"
-
+CLIENT_ENDPOINT_URL = "/progimage.com/api/v1.0"
 
 # self tests
 def deployment_self_tests():
@@ -79,14 +83,23 @@ def welcome_note():
         "See https://github.com/sosi-org/image-farms/blob/master/README.md<br/>"+ \
         "For full list: try: <a href=\""+ eurl + "\"> "+eurl+"</a>."
 
-def incorrect_usage_note():
+def incorrect_usage_note_response(hint_moreinfo, suggested_urls=[]):
     #FIXME: too small.
-    return make_response_jsonified({'error':"Incorrect usage."}, ERROR_404)
+    r = {'error':"Incorrect usage."}
+    r['comment'] = hint_moreinfo
+    if len(suggested_urls) > 0:
+        # todo: make <a href>
+        r['suggestions-try'] = suggested_urls
+    return make_response_jsonified(r, ERROR_404)
 
 
 @app.route('/')
 def index():
-    return usage_note()
+    return incorrect_usage_note_response("\"api/\" has nothing to do.", suggested_urls=[CLIENT_ENDPOINT_URL+ "/all-local", CLIENT_ENDPOINT_URL+ "/0/original/"])
+
+
+
+
 
 
 @app.errorhandler(ERROR_404)
@@ -122,6 +135,8 @@ Test: metadata generation called only after (uploaded) file saved
 # deploy:
 #   deploy on docker on an s3 volume
 # always define an upper bound (For eveything)  (image size, etc)
+
+
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/original', methods=['GET'])
 def retrieve_original(imgid):
@@ -232,6 +247,7 @@ def check_security(original_filename):
     return True
 
 #from logging import *
+#from my_logger import *
 from logger import *
 
 #def wrap_in_excp_cathcers():
@@ -280,10 +296,30 @@ def upload_file():
     """
 
 
-@app.route(API_ENDPOINT_URL+'/<int:imgid>', methods=['GET'])
+#@app.route(API_ENDPOINT_URL+'/<int:imgid>/', methods=['GET'])
+@app.route(API_ENDPOINT_URL+'/<int:imgid>', methods=['GET', 'POST', 'PUT'])
 def incorrect_usage1(imgid):
-    return incorrect_usage_note()
+    """ No such api opetaion. """ #no_operation_on_main
+    return incorrect_usage_note_response("Use api/<imageid>/original or gif or jpeg or ...")
 
+@app.route(API_ENDPOINT_URL+'/<int:imgid>', methods=['PUT'])
+def incorrect_replace_image(imgid):
+    """ No such api operation. """
+    return incorrect_usage_note_response("Modification of an uploaded image is not supported in this version.")
+
+# how to check incomplete uploaded images?
+
+@app.route(API_ENDPOINT_URL+'/<int:imgid>', methods=['DELETE'])
+def destroy_iamge(folderhash):
+    """ DELETE: Removes all current representations of the target resource given by a URL """
+    ownership_proof = "DELETE s arguments"
+    images_service.kill_image(folderhash, ownership_proof)
+    """
+    if success == 1:
+        pass
+    else:
+        raise "Something went wrong"
+    """
 
 """
 @app.route(API_ENDPOINT_URL+'/favicon.ico', methods=['GET'])

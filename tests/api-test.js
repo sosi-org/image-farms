@@ -41,7 +41,7 @@ hippie()
       throw err;
   }
   //console.log("body",body);
-  console.log("Fine");
+  console.info("Fine");
   //process.exit(0);
 });
 
@@ -233,6 +233,7 @@ for (point in [
 {
     hippie()
     .base(API_BASE)
+    //.get(point)
     .get(API+NON_EXISTING_IMAGE_ID+'/original')
     .expectStatus(404)  // correctly receive an error (REST error)
     .end();

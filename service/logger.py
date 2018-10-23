@@ -16,9 +16,10 @@ CVIOLET = '\33[35m'
 CBEIGE  = '\33[36m'
 CWHITE  = '\33[37m'
 
+global logger_lock
+
 #logger_lock = asyncio.Lock()
 logger_lock = threading.Lock()
-global logger_lock
 
 def log(message, *a,**kw):
     check_none_brutal(a)
@@ -88,9 +89,8 @@ def log_err(message, *a,**kw):
 
 
 def check_none_brutal(a):
-    pass
     #""" Makes sure the usage of log() is itself correct."""
-    #if not a == () and not  a == {} and not (type(a) == list and len(a)==0 ):
-    #    if a is not None:
-    #        print(CRED, "too many arguments", a)
-    #        exit(1)
+    if not a == () and not  a == {} and not (type(a) == list and len(a)==0 ):
+        if a is not None:
+            print(CRED, "too many arguments", a)
+            exit(1)

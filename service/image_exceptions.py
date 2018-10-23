@@ -58,6 +58,10 @@ class UnknownImageType(ImageException):
 class ImageAlreadyExists(ImageException):
     """ e.g. When trying to replace and existing image. """
     def __init__(self, imagename, hashcode):
+        """
+        @param imagename: the logical name (client-size filename) of the uploaded file.
+        @param hashcode: image_id
+        """
         super().__init__(hashcode)
         self.imagename = imagename
         #self.imageid = hashcode
