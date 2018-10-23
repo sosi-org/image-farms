@@ -348,9 +348,6 @@ def convert_to_format_and_respond(fileid, image_format):
         return error404_response_image_notfound(fileid, imexc)
 
     except Exception as err:
-        #abort(ERROR_404)
-        #return make_response_jsonified({'error': repr(err)}, ERROR_404)
-        # error	"OSError('JPEG does not support alpha channel.',)"
         return error404_response_image_notfound(fileid, err)
 
 """
@@ -380,12 +377,6 @@ def foldername_from_folderhash(folderhash):
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/jpeg', methods=['GET'])
 def convert_jpeg(imgid):
-    #pre_image_lookup
-    #if imgid == 0:
-    #    print("convertion requested.")
-    #    fileid = "sample0000"
-    #else:
-    #    return error404_response_image_notfound(imgid)
 
     print("convertion requested.")
     fileid = file_id_from_imageid(imgid)
@@ -395,12 +386,6 @@ def convert_jpeg(imgid):
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/gif', methods=['GET'])
 def convert_gif(imgid):
-    #if imgid == 0:
-    #    print("convertion requested.")
-    #    fileid = "sample0000"
-    #else:
-    #    return error404_response_image_notfound(imgid)
-
     fileid = file_id_from_imageid(imgid)
 
     image_format = 'gif'   # same as extention
@@ -440,15 +425,13 @@ def log_err(message):
     print("api server ERROR:", message)
 
 
-#def wrap_in_cathcers():
+#def wrap_in_excp_cathcers():
 #    pass
 
 @app.route(API_ENDPOINT_URL+'/upload', methods=['PUT', 'GET', 'DELETE'])
 def put_file():
     log("ERROR")
     #err = NotImplemented("PUT", moreinfo="Use DELETE and then POST, instead.)
-    #return err.response404()
-    #abort(ERROR_404)
     return make_response_jsonified({'error': "Use DELETE and then POST, instead."}, ERROR_404)
 
 
@@ -456,13 +439,7 @@ def put_file():
 import hashlib
 import struct
 
-def do_actual_upload(filename, file_content_binary):
-    print("doing the file:", filename)
-    actual_filename = secure_filename(filename)
-    del filename
-    print("I feel fine.")
-    #exit()
-    #return {}, "foldername"
+def do_actual_upload(original_clientside_filename, file_content_binary):
 
     print(type(file_content_binary))  # <class bytes>
     #os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -487,8 +464,6 @@ def do_actual_upload(filename, file_content_binary):
         local_filename = local_foldername+'/'+filename
         metadata_filename = metadata_filename_from_folderhash(folderhash)
 
-        print("===================removing:", local_filename, local_foldername)
-
         # unsafe
         if os.path.exists(local_filename):
             os.remove(local_filename)
@@ -498,16 +473,13 @@ def do_actual_upload(filename, file_content_binary):
 
         if os.path.exists(local_foldername):
             os.rmdir(local_foldername)
-        print("===================")
 
 
     # file_id is in fact folder_id
     #local_filename
     folderhash = file_id_from_imageid(image_id)  # i.e. imagehash
     local_foldername = foldername_from_folderhash(folderhash)
-    #local_filename = file_id_from_sha256(image_sha256)
     local_filename = local_foldername+'/'+ORIGINAL_BIN_FILENAME
-    #manual_cleanup(local_filename, local_foldername)
     manual_cleanup(folderhash, ORIGINAL_BIN_FILENAME)
 
     # clean
@@ -520,17 +492,13 @@ def do_actual_upload(filename, file_content_binary):
         #fl.save('./'+local_foldername+'/'+ORIGINAL_BIN_FILENAME)  #really? a 'file' object?
         fl.write(file_content_binary)
         log("WRITE successful: "+ local_filename)
-
-    #return redirect(url_for('uploaded_file',
-    #                        filename=filename))
-    #return "API UPLOADED"  # FIXME
     log("file closed.", )
-    #dir()  #?
 
-    #def generate_metadata(file_content):
-    #    # see get_metadata_locally(fileid)
-    #    pass
-    generate_metadata(folderhash, ORIGINAL_BIN_FILENAME)
+    # no need for this! it is completely secure! We use a fixed name (ORIGINAL_BIN_FILENAME) to store the file.
+    original_clientside_filename_secured = secure_filename(original_clientside_filename)
+    del original_clientside_filename
+
+    generate_metadata(folderhash, original_clientside_filename_secured)
     metadata = get_metadata_locally(folderhash)
     # actual_filename ='original.bin' is NOT metadata['orig-name']
     return metadata, local_foldername
@@ -540,100 +508,18 @@ def do_actual_upload(filename, file_content_binary):
 @app.route(API_ENDPOINT_URL+'/upload', methods=['POST'])
 def upload_file():
     log("UPLOAD using POST:")
-    log("====================================")
-
-    #print("req:::::::::::::", request)
-    ##print("request.files:", request.files)
-    #print("request:", request)
-    #print("\n".join(dir(request)))
-    #print("request.data:", request.data)
     binary_data = request.data
-    #body = json.loads(request.data)   # the JSON object must be str, not 'bytes'
-    #body = json.loads(request.data.decode('utf-8'))
-    #body = bson.BSON.decode(request.data)
-    #body = bson.decode_object(request.data)
-
     #after using BSON in client:  request.data: b'\x07\x02\x00\x00\x05binary_content\x00\xc3\x01\x00\x00\x00\xff\xd8\xff\xe0\x00\x10JFIF...'
     body = bson.loads(request.data)
-    #print("body", body.keys())
-    #print("binary content", body['binary_content'])
-    print("filename", body['filename'])
-
     binary_content = body['binary_content']
     filename = body['filename']
     meta_data, folder_name = do_actual_upload(filename, binary_content)
-
-    """
-    #import ipdb
-    #ipdb.set_trace(context=5)
-
-    #print(dir(request.lists))
-
-    # check if the post request has the file part
-    if 'file' not in request.files:
-
-        #flash('No file part')
-        #return redirect(request.url)
-        return make_response_jsonified({'error': "NO 'file' section in request."}, ERROR_404)
-    print("FILE:::::::::::::1", file)
-
-    file = request.files['file']
-    # if user does not select file, browser also
-    # submit an empty part without filename
-    print("FILE:::::::::::::2")
-
-    if file.filename == '':
-        #flash('No selected file')
-        #return redirect(request.url)
-        return make_response_jsonified({'error':"no filename"}, ERROR_404)
-
-    print("FILE:::::::::::::3")
-
-    if not file:
-        return make_response_jsonified({'error':"no file"}, ERROR_404)
-
-    print("FILE:::::::::::::4")
-
-    if not allowed_file(file.filename):
-        #return
-        return make_response_jsonified({'error': "bad filename"}, ERROR_404)
-
-    print("FILE:::::::::::::5")
-    """
-
-    """
-    filename = secure_filename(file.filename)
-    #os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    #image_id = [(fname, hashlib.sha256(file_as_bytes(open(fname, 'rb'))).digest()) for fname in fnamelst]
-    #???????? file_content = file  # file_as_bytes(open(fname, 'rb'))
-    file_content = file.binary_content
-    image_sha256 = hashlib.sha256(file_content).digest()
-    image_id = image_sha256[:8]
-    print(image_id)
-    filename = file_id_from_imageid(image_id)
-    #filename = file_id_from_sha256(image_sha256)
-    file.save(filename)  #really? a 'file' object?
-    #return redirect(url_for('uploaded_file',
-    #                        filename=filename))
-    #return "API UPLOADED"  # FIXME
-
-    def generate_metadata(file_content):
-        # see get_metadata_locally(fileid)
-        pass
-    """
 
     #content metadata (almost like a cache of one aspect of the contents: image format, and maybe width, height)
     response = make_response_jsonified({
         'metadata': meta_data,
     }, CODES.OK_CREATED)
-    #{'ContentType': JSON_MIME}
     response.headers.set('Content-Type', JSON_MIME)
-
-
-    # http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
-    # maximum number
-    # global counter
-    #https://pythonhosted.org/Flask-Uploads/
     return response
 
 
