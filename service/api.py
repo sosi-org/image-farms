@@ -20,13 +20,26 @@ import datetime
 import json
 import imageio
 
-#never call make_response. Always jsonify
 
+JSON_MIME='application/json'
+
+class CODES:
+    OK_CREATED = 201
+    OK_FINE = 200
+    ERROR_404 = 404
+
+KILO = 1024
+MEGA = KILO*KILO
+GIGA = MEGA*KILO
+
+#never call make_response. Always jsonify
 from flask import make_response  # for 404
 
 make_response_plain = make_response
 make_response = "Uncallable! Never call make_response. Always jsonify."
 def make_response_jsonified(content_dict, rest_code):
+    if rest_code == 404:
+        assert 'error' in content_dict
     return make_response_plain(jsonify(content_dict), rest_code)
 
 # ************************************************************
@@ -35,9 +48,6 @@ def make_response_jsonified(content_dict, rest_code):
 API_ENDPOINT_URL = "/progimage.com/api/v1.0"
 
 
-KILO = 1024
-MEGA = KILO*KILO
-GIGA = MEGA*KILO
 
 # code-time constant
 service_config = {
@@ -549,9 +559,6 @@ def upload_file():
     #https://pythonhosted.org/Flask-Uploads/
     pass
 
-JSON_MIME='application/json'
-class CODES:
-    OK_CREATED = 201
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>', methods=['GET'])
 def incorrect_usage1(imgid):
