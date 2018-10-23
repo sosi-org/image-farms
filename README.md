@@ -25,9 +25,7 @@ And run the test:
 ./bin/test_api.sh
 ```
 
-Manual testing can be also done using Insomnia: https://insomnia.rest/download/#linux
 
-``
 
 Note that if original is gif, convertion to gif creates a separate (cached) image.
 
@@ -60,3 +58,8 @@ http://localhost:5000/progimage.com/api/v1.0/0/gif
 
 http://localhost:5000/progimage.com/api/v1.0/0/upload
 ```
+
+
+Suggestion: Some manual testing can be also done using Insomnia.
+
+Copyright Sohail S.  2018
