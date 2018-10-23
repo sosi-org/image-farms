@@ -27,10 +27,36 @@ And run the test:
 
 Manual testing can be also done using Insomnia: https://insomnia.rest/download/#linux
 
-Examples:
+``
+
+Note that if original is gif, convertion to gif creates a separate (cached) image.
+
+The original image maintains the gif animation but after convrering back to gif, the animation will be naturally lost.
+
+
+The images are stored in "hashfolders" (created based on sha256). This can be useful for defining partitions for scaling.
+The filenames are fixed. So that the storage will be secure.
+
+The conversions to various image file formats are implemented. The converted files are cached (stored on disk).
+
+Some tests are implemented using node.js.
+
+This includes the upload test.
+
+The upload will not receive the imageid
+
+The defaiult imageid is 0, in which there is a preloaded image. For test purposes.
+All other image-id s are hash codes.
+
+
+
+Examples: (for imageid=0)
+```
 http://localhost:5000/progimage.com/api/v1.0/all-local
+
 http://localhost:5000/progimage.com/api/v1.0/0/original
 http://localhost:5000/progimage.com/api/v1.0/0/jpeg
 http://localhost:5000/progimage.com/api/v1.0/0/gif
 
-Note that if original is gif, convertion to gif is a different image.
+http://localhost:5000/progimage.com/api/v1.0/0/upload
+```
