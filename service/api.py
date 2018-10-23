@@ -59,6 +59,7 @@ EXTENTIONS = {'image/gif': 'gif', 'image/jpeg':'jpeg', 'image/png':'png'}
 MIME_LOOKUP = {'gif':'image/gif', 'jpeg':'image/jpeg', 'png':'image/png'}
 
 
+
 def fetchlocal_original_mimetype_fromcontent(fileid):
     # todo: use imageio.get_reader()
     # get_meta_data()
@@ -67,6 +68,7 @@ def fetchlocal_original_mimetype_fromcontent(fileid):
     filename = "imagestore/"+fileid+"/"+"original.bin"
     with imageio.get_reader(filename) as r:
         md = r.get_meta_data()
+        #md = get_metadata(fileid)
         print(md)
         """
         {'version': b'GIF87a', 'extension': (b'NETSCAPE2.0', 27), 'loop': 0, 'duration': 10}
@@ -79,6 +81,41 @@ def fetchlocal_original_mimetype_fromcontent(fileid):
         else:
             raise UnknownImageType(imgid=repr(imgid), comment="ImageIO could not detect the original image type.")
         #return mimetype
+    #throw image does not exist
+
+"""
+Test: metadata of nonexistant image
+Test: metadata generation called only after (uploaded) file saved
+
+"""
+
+def metadata_filename_from_fileid(fileid):
+    return "imagestore/"+fileid+"/"+"metadata.json"
+
+def get_metadata(fileid):
+    # fetchlocal_metadata()
+    metadata_filename = metadata_filename_from_fileid(fileid)
+    meta_data_json = open(metadata_filename, "rt").read()
+    metadata = json.loads(meta_data_json)
+    return metadata
+
+
+def generate_metadata(fileid, original_name):
+    """ from stored file.  original_name: uploaded name """
+    metadata_filename = metadata_filename_from_fileid(fileid)
+    mimetype = fetchlocal_original_mimetype_fromcontent(fileid)
+
+    metadata = {'orig-name':original_name, 'mimetype': mimetype}
+    #with file(metadata_filename, "wt") as f:
+    #    f.save(json.dumps(metadata))
+    #    f.close()
+    with open(metadata_filename, "wb") as file:
+        file.write(
+            json.dumps(metadata)
+        )
+
+
+    #metadata = get_metadata(fileid)
 
 # fetchlocal_mimetype
 def fetchlocal_original_mimetype_fromjson(fileid, key='mimetype'):
@@ -87,10 +124,9 @@ def fetchlocal_original_mimetype_fromjson(fileid, key='mimetype'):
     # todo: use imageio.get_reader()
     # get_meta_data()
     try:
-        metadata_filename = "imagestore/"+fileid+"/"+"original.bin"
-        meta_data_json = open(metadata_filename, "rt").read()
-        meta_data = json.loads(meta_data_json)
-        mimetype = meta_data[fieldname]
+        metadata = get_metadata(fileid)
+        fieldname = key
+        mimetype = metadata[fieldname]
         return mimetype #, EXTENTIONS[mimetype]
     except:
         return DEFAULT_MIMETYPE #, EXTENTIONS[DEFAULT_MIMETYPE]
@@ -126,12 +162,59 @@ class UnknownImageType(Exception):
             return make_response(jsonify({'error': repr(self.imgid), 'comment':self.comment}), 404)
 
 
+class ImageAlreadyExists(Exception):
+    """ e.g. When trying to replace and existing image. """
+    def __init__(self, imagename, hashcode):
+        self.imagename = imagename
+        self.hashcode = hashcode
+    def response404(self):
+        #respondize. stringify. jsonize. repr. 404repr. respond_repr
+         return make_response(jsonify({'error': "image already exists.", "imagename": self.imagename, "hashcode": self.hashcode}), 404)
+
+
+KILO = 1024
+MEGA = KILO*KILO
+GIGA = MEGA*KILO
+
+# code-time constant
+service_config = {
+    'max-size': MEGA,
+    'max-width': 10000,
+}
+
+# load-time (after deploy-time) constant
+service_config_state = {
+    'partition-id': 1,
+}
+
+class ImageTooLarge(Exception):
+    """  """
+    def __init__(self, size_pair, volume_bytes):
+        self.size_pair = size_pair
+        self.volume_bytes = volume_bytes
+    def response404(self):
+        #respondize. stringify. jsonize. repr. 404repr. respond_repr
+         return make_response(jsonify({
+             'error': "image too large. maximum %d (bytes), %d x %d" % (service_config['max-size'], service_config['max-width'], service_config['max-width'] ),
+             "size_pair": "%d x %d" % self.size_pair,
+             "volume_bytes": self.volume_bytes
+         }), 404)
+
 class ImageHasNoMask(Exception):
     def __init__(self, imageid):
         self.imageid = imageid
     def response404(self):
          return make_response(jsonify({'error': "image has no mask/alpha channel.", "imageid": self.imageid}), 404)
 
+
+# to implement:
+#  upload
+#  check (infer?) real format  --> elready done!  For texting correct conversion.
+# Check equality of two image files. (Or SERVED images)
+
+# deploy:
+#   deploy on docker on an s3 volume
+# always define an upper bound (For eveything)  (image size, etc)
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/original', methods=['GET'])
 def retrieve_original(imgid):
@@ -284,11 +367,18 @@ def convert_to_format_and_respond(fileid, image_format):
         # error	"OSError('JPEG does not support alpha channel.',)"
         return error404_response_image_notfound(fileid, err)
 
+"""
+file_id:  an <int>
+imageid:  foldername
+"""
 
 def file_id_from_imageid(imgid):
     if imgid == 0:
         fileid = "sample0000"
         return fileid
+    elif imgid == 12:
+        file_id = "00012"
+        return file_id
     else:
         #return error404_response_image_notfound(imgid)
         raise ImageNotFound(imgid)
@@ -338,6 +428,93 @@ def extract_mask_api(imgid):
     return extract_mask(fileid)
     #return convert_to_format_and_respond(fileid, image_format)
 
+from werkzeug.utils import secure_filename
+
+def check_security(original_filename):
+    # checks if a filename is secure (not very long, etc)
+    return True
+
+def log(message):
+    print("API server:", message)
+
+#def wrap_in_cathcers():
+#    pass
+
+@app.route(API_ENDPOINT_URL+'/upload', methods=['PUT', 'GET', 'DELETE'])
+def put_file():
+    log("ERROR")
+    #err = NotImplemented("PUT", moreinfo="Use DELETE and then POST, instead.)
+    #return err.response404()
+    #abort(404)
+    return make_response("Use DELETE and then POST, instead.", 404)
+
+
+#from flask import Flask, flash, request, redirect, url_for
+import hashlib
+
+# insomnia
+@app.route(API_ENDPOINT_URL+'/upload', methods=['POST'])
+def upload_file():
+    log("UPLOAD using POST")
+    log("====================================")
+
+    # check if the post request has the file part
+    if 'file' not in request.files:
+
+        #flash('No file part')
+        #return redirect(request.url)
+        return make_response("NO 'file' section in request.", 404)
+    print("FILE:::::::::::::", file)
+
+    file = request.files['file']
+    # if user does not select file, browser also
+    # submit an empty part without filename
+
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(request.url)
+
+    if not file:
+        return
+
+    if not allowed_file(file.filename):
+        return
+
+    filename = secure_filename(file.filename)
+    #os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    #image_id = [(fname, hashlib.sha256(file_as_bytes(open(fname, 'rb'))).digest()) for fname in fnamelst]
+    file_content = file  # file_as_bytes(open(fname, 'rb'))
+    image_sha256 = hashlib.sha256(file_content).digest()
+    image_id = image_sha256[:8]
+    print(image_id)
+    filename = file_id_from_imageid(image_id)
+    #filename = file_id_from_sha256(image_sha256)
+    file.save(filename)  #really? a 'file' object?
+    #return redirect(url_for('uploaded_file',
+    #                        filename=filename))
+    #return "API UPLOADED"  # FIXME
+
+    def generate_metadata(file_content):
+        # see get_metadata(fileid)
+        pass
+
+    response = make_response(jsonify({
+        meta_data
+
+    }), CODES.OK_CREATED)
+    #{'ContentType': JSON_MIME}
+    response.headers.set('Content-Type', JSON_MIME)
+
+
+    # http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
+    # maximum number
+    # global counter
+    #https://pythonhosted.org/Flask-Uploads/
+    pass
+
+JSON_MIME='application/json'
+class CODES:
+    OK_CREATED = 201
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>', methods=['GET'])
 def incorrect_usage1(imgid):
