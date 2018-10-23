@@ -416,23 +416,34 @@ def put_file():
 
 #from flask import Flask, flash, request, redirect, url_for
 import hashlib
+import struct
 
 def do_actual_upload(filename, binary_content):
     print("doing the file:", filename)
-    filename = secure_filename(filename)
+    actual_filename = secure_filename(filename)
+    del filename
     print("I feel fine.")
     #exit()
-    return {}, "foldername"
+    #return {}, "foldername"
+
+    print(type(binary_content))  # <class bytes>
     #os.path.join(app.config['UPLOAD_FOLDER'], filename)
     #image_id = [(fname, hashlib.sha256(file_as_bytes(open(fname, 'rb'))).digest()) for fname in fnamelst]
     #???????? file_content = file  # file_as_bytes(open(fname, 'rb'))
     file_content = binary_content
     image_sha256 = hashlib.sha256(file_content).digest()
+    # b' .. ' -> sha256 -> hash object -> digest -> binary b'...'
+    print(image_sha256)
+
+    s_compiled = struct.Struct('<L')  # 4 bytes    #L 	unsigned long 	integer 	4
+    hash_int_val = s_compiled.unpack_from(image_sha256)  # 4 bytes
+    return {'hash val':hash_int_val}, "foldername"
+
     image_id = image_sha256[:8]
     print(image_id)
     filename = file_id_from_imageid(image_id)
     #filename = file_id_from_sha256(image_sha256)
-    file.save(filename)  #really? a 'file' object?
+    file.save(actual_filename)  #really? a 'file' object?
     #return redirect(url_for('uploaded_file',
     #                        filename=filename))
     #return "API UPLOADED"  # FIXME
@@ -440,6 +451,8 @@ def do_actual_upload(filename, binary_content):
     def generate_metadata(file_content):
         # see get_metadata(fileid)
         pass
+
+    return {'blah':actual_filename}, "foldername"
 
 
 # insomnia
