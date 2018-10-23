@@ -191,49 +191,23 @@ def convert_to_format_and_respond(fileid, image_format):
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/jpeg', methods=['GET'])
 def convert_jpeg(imgid):
     (binary, mimetype) =  images_service.convert_jpeg(imgid)
-
     response = make_response_plain(binary)
     response.headers.set('Content-Type', mimetype)
     return response
-
-    """
-    print("convertion requested.")
-    fileid = file_id_from_imageid(imgid)
-
-    image_format = 'jpeg'   # same as extention
-    return convert_to_format_and_respond(fileid, image_format)
-    """
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/gif', methods=['GET'])
 def convert_gif(imgid):
-
     (binary, mimetype) = images_service.convert_gif(imgid)
-
     response = make_response_plain(binary)
     response.headers.set('Content-Type', mimetype)
     return response
-
-    """
-    fileid = file_id_from_imageid(imgid)
-
-    image_format = 'gif'   # same as extention
-    return convert_to_format_and_respond(fileid, image_format)
-    """
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/png', methods=['GET'])
 def convert_png(imgid):
     (binary, mimetype) = images_service.convert_png(imgid)
-    log(mimetype)
     response = make_response_plain(binary)
     response.headers.set('Content-Type', mimetype)
     return response
-    """
-    fileid = file_id_from_imageid(imgid)
-    image_format = 'png'   # same as extention
-    #print(fileid, image_format, "=-=-=-=-=")
-    #print(fileid, image_format, "*********")
-    return convert_to_format_and_respond(fileid, image_format)
-    """
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/mask', methods=['GET'])
 def extract_mask_api(imgid):
@@ -241,14 +215,6 @@ def extract_mask_api(imgid):
     response = make_response_plain(binary)
     response.headers.set('Content-Type', mimetype)
     return response
-    """
-    print("imgid",imgid)
-    fileid = file_id_from_imageid(imgid)
-    print("imgid",imgid)
-    image_format = 'png'   # same as extention
-    return extract_mask(fileid)
-    #return convert_to_format_and_respond(fileid, image_format)
-    """
 
 
 def check_security(original_filename):
@@ -263,7 +229,7 @@ from logger import *
 
 @app.route(API_ENDPOINT_URL+'/upload', methods=['PUT', 'GET', 'DELETE'])
 def put_file():
-    log("ERROR")
+    log_err("no PUT")
     #err = NotImplemented("PUT", moreinfo="Use DELETE and then POST, instead.)
     return make_response_jsonified({'error': "Use DELETE and then POST, instead."}, ERROR_404)
 
@@ -273,7 +239,7 @@ def put_file():
 
 @app.route(API_ENDPOINT_URL+'/upload', methods=['POST'])
 def upload_file():
-    log("UPLOAD using POST:")
+    log("UPLOADing using POST:")
     try:
         #after using BSON in client:  request.data: b'\x07\x02\x00\x00\x05binary_content\x00\xc3\x01\x00\x00\x00\xff\xd8\xff\xe0\x00\x10JFIF...'
         body = bson.loads(request.data)  # is binary

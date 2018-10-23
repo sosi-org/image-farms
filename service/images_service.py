@@ -71,17 +71,17 @@ def fetchlocal_original_mimetype_fromcontent(fileid):
     """ Uses image.io to get the File Format NOT from the extention. Directly from the contents."""
     filename = IMAGE_BASE + fileid+"/"+FIXEDNAME_ORIGINALBINARY
     with imageio.get_reader(filename) as r:
-        md = r.get_meta_data()
-        print(md)
-        if 'version' in md and md['version'] == b'GIF87a':
-            log("GIF")
+        fileformat_md = r.get_meta_data()
+        #print(fileformat_md)
+        if 'version' in fileformat_md and fileformat_md['version'] == b'GIF87a':
+            #log("GIF")
             """
             GIF:
             {'version': b'GIF87a', 'extension': (b'NETSCAPE2.0', 27), 'loop': 0, 'duration': 10}
             """
             return MIME_LOOKUP['gif']
-        elif 'jfif_version' in md or 'jfif' in md:
-            log("JPEG")
+        elif 'jfif_version' in fileformat_md or 'jfif' in fileformat_md:
+            #log("JPEG")
             """
             JPEG:
                 {'jfif_version': (1, 1), 'dpi': (72, 72), 'jfif': 257, 'jfif_unit': 1, 'jfif_density': (72, 72)}
@@ -89,7 +89,7 @@ def fetchlocal_original_mimetype_fromcontent(fileid):
             return MIME_LOOKUP['jpeg']
         else:
             log_err("unknown type")
-            raise UnknownImageType(imgid=repr(imgid), comment="ImageIO could not detect the original image type.")
+            raise UnknownImageType(imgid=repr(fileid), comment="ImageIO could not detect the original image type.")
         #return mimetype
     #throw image does not exist
 
