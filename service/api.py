@@ -142,8 +142,10 @@ Test: metadata generation called only after (uploaded) file saved
 def retrieve_original(imageid_int):
     # from flask import send_file
     try:
+        folderhash = str(imageid_int)
+        #folderhash = folderhash_from_imageid(imageid_int)
         (image_binary, original_mimetype, original_name) = \
-            images_service.retrieve_original(imageid_int)
+            images_service.retrieve_original(folderhash)
 
         response = make_response_plain(image_binary)
         response.headers.set('Content-Type', original_mimetype)
@@ -175,9 +177,9 @@ def retrieve_original(imageid_int):
 #upload: imageio can directly fetch it
 
 
-def extract_mask(fileid):
+def extract_mask(folderhash):
     try:
-        converted_binary, converted_mimetype = images_service.extract_mask(fileid)
+        converted_binary, converted_mimetype = images_service.extract_mask(folderhash)
         response = make_response_plain(converted_binary)
         response.headers.set('Content-Type', converted_mimetype)
         return response
@@ -186,7 +188,7 @@ def extract_mask(fileid):
         return ihnm.response404() #make_response_jsonified({'error': "image not found", "imageid": imageid}, ERROR_404)
 
     except ImageIdNotFound as imexc:
-        return imexc.response404() #error404_response_image_notfound(fileid, imexc)
+        return imexc.response404() #error404_response_image_notfound(folderhash, imexc)
 
     except ImageException as imexc:
         return imexc.response404()  # unsure
@@ -197,27 +199,28 @@ def extract_mask(fileid):
         #abort(ERROR_404)
         #return make_response_jsonified({'error': repr(err)}, ERROR_404)
         # error	"OSError('JPEG does not support alpha channel.',)"
-        return error404_response_image_notfound(fileid, err)
+        return error404_response_image_notfound(folderhash, err)
     """
 
 
-def convert_to_format_and_respond(fileid, image_format):
+def convert_to_format_and_respond(folderhash, image_format):
+    assert type(folderhash) is str
     try:
-        log_warn(image_format+ ".  req:"+str(fileid))
-        converted_binary, converted_mimetype = images_service.convert_to_format_and_respond(fileid, image_format)
+        log_warn(image_format+ ".  req:"+folderhash)
+        converted_binary, converted_mimetype = images_service.convert_to_format_and_respond(folderhash, image_format)
         response = make_response_plain(converted_binary)
         response.headers.set('Content-Type', converted_mimetype)
 
         return response
 
     except ImageIdNotFound as ex:
-        log_err(image_format+ ".  req:"+str(fileid))
+        log_err(image_format+ ".  req:"+folderhash)
         return ex.response404()
 
     #except ImageIdNotFound as imexc:
-    #    return error404_response_image_notfound(fileid, imexc)
+    #    return error404_response_image_notfound(folderhash, imexc)
     #except Exception as err:
-    #    return error404_response_image_notfound(fileid, err)
+    #    return error404_response_image_notfound(folderhash, err)
 
 
 @app.route(API_ENDPOINT_URL+'/<int:imageid_int>/jpeg', methods=['GET'])

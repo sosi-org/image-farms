@@ -67,9 +67,9 @@ def invoices_listall():
     return {'images': long_long_list}
 
 @staticmethod
-def fetchlocal_original_mimetype_fromcontent(fileid):
+def fetchlocal_original_mimetype_fromcontent(folderhash):
     """ Uses image.io to get the File Format NOT from the extention. Directly from the contents."""
-    filename = IMAGE_BASE + fileid+"/"+FIXEDNAME_ORIGINALBINARY
+    filename = IMAGE_BASE + folderhash+"/"+FIXEDNAME_ORIGINALBINARY
     with imageio.get_reader(filename) as r:
         fileformat_md = r.get_meta_data()
         #print(fileformat_md)
@@ -89,7 +89,7 @@ def fetchlocal_original_mimetype_fromcontent(fileid):
             return MIME_LOOKUP['jpeg']
         else:
             log_err("unknown type")
-            raise UnknownImageType(imageid_int=repr(fileid), comment="ImageIO could not detect the original image type.")
+            raise UnknownImageType(imageid_int=repr(folderhash), comment="ImageIO could not detect the original image type.")
         #return mimetype
     #throw image does not exist
 
@@ -107,10 +107,10 @@ def get_metadata_locally(folderhash):
     return metadata
 
 @staticmethod
-def generate_metadata(fileid, original_name):
+def generate_metadata(folderhash, original_name):
     """ from stored file.  original_name: uploaded name """
-    metadata_filename = metadata_filename_from_folderhash(fileid)
-    mimetype = fetchlocal_original_mimetype_fromcontent(fileid)
+    metadata_filename = metadata_filename_from_folderhash(folderhash)
+    mimetype = fetchlocal_original_mimetype_fromcontent(folderhash)
 
     metadata = {'orig-name':original_name, 'mimetype': mimetype}
     #with file(metadata_filename, "wt") as f:
@@ -125,18 +125,18 @@ def generate_metadata(fileid, original_name):
         file.write(
             json.dumps(metadata)
         )
-    #metadata = get_metadata_locally(fileid)
+    #metadata = get_metadata_locally(folderhash)
     return
 
 @staticmethod
 # fetchlocal_mimetype
-def fetchlocal_original_mimetype_fromjson(fileid, key='mimetype'):
+def fetchlocal_original_mimetype_fromjson(folderhash, key='mimetype'):
     DEFAULT_MIMETYPE = "image/jpeg"
     #DEFAULT_EXTENTION = "jpeg"
     # todo: use imageio.get_reader()
     # get_meta_data()
     try:
-        metadata = get_metadata_locally(fileid)
+        metadata = get_metadata_locally(folderhash)
         fieldname = key
         mimetype = metadata[fieldname]
         return mimetype #, EXTENTIONS[mimetype]
@@ -157,8 +157,8 @@ def fetchlocal_binary(hashfolder):
 
 
 @staticmethod
-def retrieve_original(imageid_int):
-    folderhash = folderhash_from_imageid(imageid_int)
+def retrieve_original(folderhash):
+    #folderhash = folderhash_from_imageid(imageid_int)
     """
     if imageid_int == 0:
         print("Default image requested.")
@@ -258,22 +258,26 @@ def do_actual_upload(original_clientside_filename, file_content_binary):
     hash_int_val = s_compiled.unpack_from(image_sha256)[0]  # 4 bytes
     #return {'hash val':hash_int_val}, "foldername"
 
-    image_id = hash_int_val
-    log("Uploading: image_id:::"+str(image_id))
+    hash_int_val = hash_int_val
+    log("Uploading: hash_int_val:::"+str(hash_int_val))
 
 
-    data_consistency_checks.image_id(image_id)
+
     #data_consistency_checks.check02(local_filename, local_foldername)
 
 
     # file_id is in fact folder_id
     #local_filename
-    folderhash = folderhash_from_imageid(image_id)  # i.e. imagehash
+    #folderhash = folderhash_from_imageid(hash_int_val)  # i.e. imagehash
+    folderhash = str(hash_int_val)
+
+    data_consistency_checks.image_id(folderhash)
+
     local_foldername = foldername_from_folderhash(folderhash)
     local_filename = local_foldername+'/'+FIXEDNAME_ORIGINALBINARY
     manual_cleanup(folderhash)
 
-    data_consistency_checks.image_id(image_id)
+    data_consistency_checks.image_id(folderhash)
     #data_consistency_checks.check02(local_filename, local_foldername)
 
     # has to be empty
@@ -310,30 +314,30 @@ def kill_image(folderhash, ownership_proof):
     Can be a publickey + owner_id. Use metadata to store and check this.
     """
     ignore(ownership_proof)
-    data_consistency_checks.image_id(image_id)
+    data_consistency_checks.image_id(folderhash)
     manual_cleanup(folderhash)
-    data_consistency_checks.image_id(image_id)
+    data_consistency_checks.image_id(folderhash)
     #return 1
 
 
 @staticmethod
-def extract_mask(fileid):
+def extract_mask(folderhash):
     print("===========================================::")
-    original_image_binary = fetchlocal_binary(fileid)
+    original_image_binary = fetchlocal_binary(folderhash)
     im = imageio.imread(original_image_binary)
 
     image_format = 'png'
     converted_mimetype = MIME_LOOKUP[image_format]
 
     #local_filename
-    local_cached_filename = IMAGE_BASE + fileid+"/mask."+image_format
+    local_cached_filename = IMAGE_BASE + folderhash+"/mask."+image_format
 
 
     # remove alpha channel
     if im.shape[2] >3:
         mask = im[:,:,3]
     else:
-        raise ImageHasNoMask(fileid)
+        raise ImageHasNoMask(folderhash)
 
     imageio.imwrite(local_cached_filename, mask)
     #todo: add metadata
@@ -342,12 +346,13 @@ def extract_mask(fileid):
     return converted_binary, converted_mimetype
 
 @staticmethod
-def convert_to_format_and_respond(fileid, image_format):
-    log("fetching binary file: "+ str(fileid) + " for: " + image_format)
+def convert_to_format_and_respond(folderhash, image_format):
+    assert type(folderhash) is str
+    log("fetching binary file: "+ folderhash + " for: " + image_format)
 
     """ Note: I dont cache here. It is up to the browser and server to cache it."""
 
-    #original_mimetype = fetchlocal_original_mimetype_fromjson(fileid)
+    #original_mimetype = fetchlocal_original_mimetype_fromjson(folderhash)
 
     #converted_mimetype = MIME_LOOKUP.get(image_format, "UNKNOWN1")
     #converted_mimetype = MIME_LOOKUP[image_format]
@@ -356,7 +361,7 @@ def convert_to_format_and_respond(fileid, image_format):
 
     log("converting to: mimetype: " + converted_mimetype)
 
-    original_image_binary = fetchlocal_binary(fileid)
+    original_image_binary = fetchlocal_binary(folderhash)
 
     im = imageio.imread(original_image_binary)
     #print(im)
@@ -368,7 +373,7 @@ def convert_to_format_and_respond(fileid, image_format):
         # do the conversion
 
         #local_filename
-        local_cached_filename = IMAGE_BASE + fileid+"/"+fileid+"."+image_format
+        local_cached_filename = IMAGE_BASE + folderhash+"/"+folderhash+"."+image_format
         #cached_name = ""+"."+image_format
         log("writing: local_cached_filename:" + local_cached_filename)
 
@@ -399,8 +404,8 @@ def folderhash_from_imageid(imageid_int):
     assert (imageid_int+2)/2 == (imageid_int)/2+1, repr(imageid_int)
 
     if imageid_int == 0:
-        fileid = "sample0000"
-        return fileid
+        folderhash = "sample0000"
+        return folderhash
     #elif imageid_int == 12:
     #    file_id = "00012"
     #    return file_id
@@ -420,32 +425,32 @@ def foldername_from_folderhash(folderhash):
 def convert_jpeg(imageid_int):
 
     print("convertion requested.")
-    fileid = folderhash_from_imageid(imageid_int)
+    folderhash = folderhash_from_imageid(imageid_int)
 
     image_format = 'jpeg'   # same as extention
-    return convert_to_format_and_respond(fileid, image_format)
+    return convert_to_format_and_respond(folderhash, image_format)
 
 
 def convert_gif(imageid_int):
-    fileid = folderhash_from_imageid(imageid_int)
+    folderhash = folderhash_from_imageid(imageid_int)
 
     image_format = 'gif'   # same as extention
-    return convert_to_format_and_respond(fileid, image_format)
+    return convert_to_format_and_respond(folderhash, image_format)
 
 
 def convert_png(imageid_int):
-    fileid = folderhash_from_imageid(imageid_int)
+    folderhash = folderhash_from_imageid(imageid_int)
     image_format = 'png'   # same as extention
-    return convert_to_format_and_respond(fileid, image_format)
+    return convert_to_format_and_respond(folderhash, image_format)
 """
 
-def extract_mask_api(imageid_int):
-    print("imageid_int",imageid_int)
-    fileid = folderhash_from_imageid(imageid_int)
-    print("imageid_int",imageid_int)
+def extract_mask_api(folderhash):
+    #print("imageid_int",imageid_int)
+    #folderhash = folderhash_from_imageid(imageid_int)
+    #print("imageid_int",imageid_int)
     image_format = 'png'   # same as extention
-    return extract_mask(fileid)
-    #return convert_to_format_and_respond(fileid, image_format)
+    return extract_mask(folderhash)
+    #return convert_to_format_and_respond(folderhash, image_format)
 
 
 # use class? or the module as namespace? (ans remove @staticmethod_)
