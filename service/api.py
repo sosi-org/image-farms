@@ -331,7 +331,7 @@ def upload_file():
         body = bson.loads(request.data)  # is binary
         binary_content = body['binary_content']
         filename = body['filename']
-        meta_data, folderhash = images_service.do_actual_upload(filename, binary_content, pre_delete=True)
+        meta_data, folderhash = images_service.do_actual_upload(filename, binary_content, pre_delete=False)
 
         #content metadata (almost like a cache of one aspect of the contents: image format, and maybe width, height)
         response = make_response_jsonified({
