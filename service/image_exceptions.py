@@ -50,7 +50,7 @@ class ImageIdNotFound(ImageException):
         return error404_response_image_notfound(self.imageid)   #,self
 
 # mess
-class UnknownImageType(ImageException):
+class UnknownFileFormat(ImageException):
     #def __init__(self, info, excep=None):
         #self.info = info
         #if excep is not None:

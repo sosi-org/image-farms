@@ -32,7 +32,7 @@ Note that if original is gif, convertion to gif creates a separate (cached) imag
 The original image maintains the gif animation but after convrering back to gif, the animation will be naturally lost.
 
 
-The images are stored in "hashfolders" (created based on sha256). This can be useful for defining partitions for scaling.
+The images are stored in "folderhashs" (created based on sha256). This can be useful for defining partitions for scaling.
 The filenames are fixed. So that the storage will be secure.
 
 The conversions to various image file formats are implemented. The converted files are cached (stored on disk).

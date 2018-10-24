@@ -89,7 +89,7 @@ def fetchlocal_original_mimetype_fromcontent(folderhash):
             return MIME_LOOKUP['jpeg']
         else:
             log_err("unknown type")
-            raise UnknownImageType(imageid_int=repr(folderhash), comment="ImageIO could not detect the original image type.")
+            raise UnknownFileFormat(imageid_int=repr(folderhash), comment="ImageIO could not detect the original image type.")
         #return mimetype
     #throw image does not exist
 
@@ -145,15 +145,15 @@ def fetchlocal_original_mimetype_fromjson(folderhash, key='mimetype'):
 
 
 @staticmethod
-def fetchlocal_binary(hashfolder):
-    assert type(hashfolder) is str
-    filename = IMAGE_BASE + hashfolder +"/"+FIXEDNAME_ORIGINALBINARY
-    if not os.path.exists(filename): #IMAGE_BASE + str(hashfolder)):
-        raise ImageIdNotFound(hashfolder)
+def fetchlocal_binary(folderhash):
+    assert type(folderhash) is str
+    filename = IMAGE_BASE + folderhash +"/"+FIXEDNAME_ORIGINALBINARY
+    if not os.path.exists(filename): #IMAGE_BASE + str(folderhash)):
+        raise ImageIdNotFound(folderhash)
     try:
         return open(filename, "rb").read()
     except FileNotFoundError:
-        raise ImageIdNotFound(hashfolder)
+        raise ImageIdNotFound(folderhash)
 
 
 @staticmethod

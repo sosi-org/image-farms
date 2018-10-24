@@ -161,7 +161,7 @@ def retrieve_original(imageid_int):
     except ImageIdNotFound as err:
             #abort(ERROR_404)
             return error404_response_image_notfound(err.imageid)
-    except UnknownImageType as uierr:
+    except UnknownFileFormat as uierr:
         return uierr.response404(imgageid=imageid_int, comment="MIME type information could not be found from the orignal image file.")
         #make_response_jsonified({'error': repr(uierr), 'comment':"MIME type information could not be found from the orignal image file."}, ERROR_404)
 
