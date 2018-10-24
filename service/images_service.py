@@ -145,19 +145,20 @@ def fetchlocal_original_mimetype_fromjson(fileid, key='mimetype'):
 
 
 @staticmethod
-def fetchlocal_binary(fileid):
-    filename = IMAGE_BASE + str(fileid)+"/"+FIXEDNAME_ORIGINALBINARY
-    if not os.path.exists(filename): #IMAGE_BASE + str(fileid)):
-        raise ImageIdNotFound(fileid)
+def fetchlocal_binary(hashfolder):
+    assert type(hashfolder) is str
+    filename = IMAGE_BASE + hashfolder +"/"+FIXEDNAME_ORIGINALBINARY
+    if not os.path.exists(filename): #IMAGE_BASE + str(hashfolder)):
+        raise ImageIdNotFound(hashfolder)
     try:
         return open(filename, "rb").read()
     except FileNotFoundError:
-        raise ImageIdNotFound(fileid)
+        raise ImageIdNotFound(hashfolder)
 
 
 @staticmethod
 def retrieve_original(imageid_int):
-    fileid = folderhash_from_imageid(imageid_int)
+    folderhash = folderhash_from_imageid(imageid_int)
     """
     if imageid_int == 0:
         print("Default image requested.")
@@ -166,21 +167,21 @@ def retrieve_original(imageid_int):
         #bytes_read
 
         # image_id
-        fileid = "sample0000"
+        folderhash = "sample0000"
     else:
         #raise ImageIdNotFound(imageid_int)
-        fileid = str(imageid_int)
+        folderhash = str(imageid_int)
     """
 
-    #original_mimetype = fetchlocal_original_mimetype_fromjson(fileid)
-    original_mimetype = fetchlocal_original_mimetype_fromcontent(fileid)
+    #original_mimetype = fetchlocal_original_mimetype_fromjson(folderhash)
+    original_mimetype = fetchlocal_original_mimetype_fromcontent(folderhash)
 
     log("Retrieving original image. Original mimetype: " + original_mimetype)
     #extention = EXTENTIONS[original_mimetype]
 
-    image_binary = fetchlocal_binary(fileid)
+    image_binary = fetchlocal_binary(folderhash)
     if False:
-        orig_filename = get_metadata_locally(fileid)['orig-name']  # not always asked for
+        orig_filename = get_metadata_locally(folderhash)['orig-name']  # not always asked for
     else:
         orig_filename = "unused"
     return image_binary, original_mimetype, orig_filename
