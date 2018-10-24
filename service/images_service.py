@@ -99,8 +99,8 @@ def fetchlocal_original_mimetype_fromcontent(folderhash):
                 {'jfif_version': (1, 1), 'dpi': (72, 72), 'jfif': 257, 'jfif_unit': 1, 'jfif_density': (72, 72)}
             """
             return MIME_LOOKUP['jpeg']
-        #elif graphics_fileformat.name == 'PNG-PIL':
-        #    return MIME_LOOKUP['png']
+        elif graphics_fileformat == 'PNG-PIL':
+            return MIME_LOOKUP['png']
         else:
             log_err("unknown image type. (Could be PNG which is not implemented)")
             log_err("imageio output: "+json.dumps(fileformat_md)+"   format:"+graphics_fileformat)
