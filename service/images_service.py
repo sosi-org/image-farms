@@ -172,19 +172,21 @@ def retrieve_original(folderhash):
         #raise ImageIdNotFound(imageid_int)
         folderhash = str(imageid_int)
     """
+    try:
+        #original_mimetype = fetchlocal_original_mimetype_fromjson(folderhash)
+        original_mimetype = fetchlocal_original_mimetype_fromcontent(folderhash)
 
-    #original_mimetype = fetchlocal_original_mimetype_fromjson(folderhash)
-    original_mimetype = fetchlocal_original_mimetype_fromcontent(folderhash)
+        log("Retrieving original image. Original mimetype: " + original_mimetype)
+        #extention = EXTENTIONS[original_mimetype]
 
-    log("Retrieving original image. Original mimetype: " + original_mimetype)
-    #extention = EXTENTIONS[original_mimetype]
-
-    image_binary = fetchlocal_binary(folderhash)
-    if False:
-        orig_filename = get_metadata_locally(folderhash)['orig-name']  # not always asked for
-    else:
-        orig_filename = "unused"
-    return image_binary, original_mimetype, orig_filename
+        image_binary = fetchlocal_binary(folderhash)
+        if False:
+            orig_filename = get_metadata_locally(folderhash)['orig-name']  # not always asked for
+        else:
+            orig_filename = "unused"
+        return image_binary, original_mimetype, orig_filename
+    except FileNotFoundError:
+        raise ImageIdNotFound(folderhash)
     """
     response = make_response_plain(image_binary)
     response.headers.set('Content-Type', original_mimetype)
@@ -216,7 +218,8 @@ class data_consistency_checks:
 
     @staticmethod
     def image_id(folderhash):
-        local_foldername = foldername_from_folderhash(folderhash)
+        assert type(folderhash) is str
+        local_foldername = IMAGE_BASE + folderhash
         local_filename = local_foldername+'/'+FIXEDNAME_ORIGINALBINARY
         data_consistency_checks.check02(local_filename, local_foldername)
 
@@ -224,8 +227,8 @@ class data_consistency_checks:
 def manual_cleanup(folderhash):
     #def manual_cleanup(local_filename, local_foldername):
     filename=FIXEDNAME_ORIGINALBINARY
-
-    local_foldername = foldername_from_folderhash(folderhash)
+    assert type(folderhash) is str
+    local_foldername = IMAGE_BASE + folderhash
     local_filename = local_foldername+'/'+filename
     metadata_filename = metadata_filename_from_folderhash(folderhash)
 
@@ -273,7 +276,10 @@ def do_actual_upload(original_clientside_filename, file_content_binary):
 
     data_consistency_checks.image_id(folderhash)
 
-    local_foldername = foldername_from_folderhash(folderhash)
+    #local_foldername = foldername_from_folderhash(folderhash)
+    assert type(folderhash) is str
+    local_foldername = IMAGE_BASE + folderhash
+
     local_filename = local_foldername+'/'+FIXEDNAME_ORIGINALBINARY
     manual_cleanup(folderhash)
 
@@ -416,10 +422,10 @@ def folderhash_from_imageid(imageid_int):
     return str(imageid_int)
 """
 
-@staticmethod
-def foldername_from_folderhash(folderhash):
-    local_foldername = IMAGE_BASE + str(folderhash)
-    return local_foldername
+#@staticmethod
+#def foldername_from_folderhash(folderhash):
+#    local_foldername = IMAGE_BASE + str(folderhash)
+#    return local_foldername
 
 
 """

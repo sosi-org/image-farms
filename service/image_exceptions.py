@@ -25,7 +25,7 @@ class ImageException(Respond404ableException):
         super().__init__(*ka,**kw)
         #super().__init__(error, *ka,**kw)
         self.imageid = imageid
-        assert type(imageid) is int
+        assert type(imageid) is str
         #log_err(""+str(type(self))+" "+repr(self))
         assert self.imageid == imageid
         log_err(""+str(type(self))+":"+str(self.imageid))
@@ -36,6 +36,7 @@ class ImageIdNotFound(ImageException):
     def __init__(self, imageid):
         super().__init__(imageid)
         assert self.imageid == imageid
+        assert type(imageid) is str
         #log_err("EEEEEEEEE>>>>>>>>>>>>>>>>>"+str(type(self))+" "+repr(self))
 
 #doesnt work
@@ -92,6 +93,8 @@ class ImageTooLarge(ImageException):
     def __init__(self, imageid, size_pair, volume_bytes):
         super().__init__(imageid)
 
+        assert type(imageid) is str
+
         #FIXME:; dimension
         self.size_pair = size_pair
         self.volume_bytes = volume_bytes
@@ -103,9 +106,11 @@ class ImageTooLarge(ImageException):
              "volume_bytes": self.volume_bytes
          }, 404)
 
+
 class ImageHasNoMask(ImageException):
     def __init__(self, imageid):
         super().__init__(imageid)
         #self.imageid = imageid
+        assert type(imageid) is str
     def response404(self):
          return make_response_jsonified({'error': "image has no mask/alpha channel.", "imageid": self.imageid}, 404)

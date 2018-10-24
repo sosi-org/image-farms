@@ -142,7 +142,9 @@ Test: metadata generation called only after (uploaded) file saved
 def retrieve_original(imageid_int):
     # from flask import send_file
     try:
-        folderhash = str(imageid_int)
+        folderhash = folderhash_from_imageid(imageid_int)
+        del imageid_int
+        #folderhash = str(imageid_int)
         #folderhash = folderhash_from_imageid(imageid_int)
         (image_binary, original_mimetype, original_name) = \
             images_service.retrieve_original(folderhash)
@@ -177,6 +179,16 @@ def retrieve_original(imageid_int):
 #upload: imageio can directly fetch it
 
 
+def folderhash_from_imageid(imageid_int):
+    # assert int
+    assert (imageid_int+2)/2 == (imageid_int)/2+1, repr(imageid_int)
+
+    if imageid_int == 0:
+        folderhash = "sample0000"
+        return folderhash
+    return str(imageid_int)
+
+
 def extract_mask(folderhash):
     try:
         converted_binary, converted_mimetype = images_service.extract_mask(folderhash)
@@ -204,7 +216,9 @@ def extract_mask(folderhash):
 
 
 def convert_to_format_and_respond(imageid_int, image_format):
-    folderhash = str(imageid_int)
+    #folderhash = str(imageid_int)
+    folderhash = folderhash_from_imageid(imageid_int)
+    del imageid_int
     assert type(folderhash) is str
     try:
         log_warn(image_format+ ".  req:"+folderhash)
@@ -227,6 +241,9 @@ def convert_to_format_and_respond(imageid_int, image_format):
 @app.route(API_ENDPOINT_URL+'/<int:imageid_int>/jpeg', methods=['GET'])
 def convert_jpeg(imageid_int):
     log("LJPEGG")
+    #folderhash = folderhash_from_imageid(imageid_int)
+    #del imageid_int
+
     return convert_to_format_and_respond(imageid_int, 'jpeg')
     """
     try:
@@ -240,6 +257,8 @@ def convert_jpeg(imageid_int):
 
 @app.route(API_ENDPOINT_URL+'/<int:imageid_int>/gif', methods=['GET'])
 def convert_gif(imageid_int):
+    #folderhash = folderhash_from_imageid(imageid_int)
+    #del imageid_int
     return convert_to_format_and_respond(imageid_int, 'gif')
     """
     try:
@@ -254,6 +273,8 @@ def convert_gif(imageid_int):
 
 @app.route(API_ENDPOINT_URL+'/<int:imageid_int>/png', methods=['GET'])
 def convert_png(imageid_int):
+    #folderhash = folderhash_from_imageid(imageid_int)
+    #del imageid_int
     return convert_to_format_and_respond(imageid_int, 'png')
     """
     try:
@@ -268,7 +289,9 @@ def convert_png(imageid_int):
 @app.route(API_ENDPOINT_URL+'/<int:imageid_int>/mask', methods=['GET'])
 def extract_mask_api(imageid_int):
     try:
-        (binary, mimetype) =  images_service.extract_mask_api(imageid_int)
+        folderhash = folderhash_from_imageid(imageid_int)
+        del imageid_int
+        (binary, mimetype) =  images_service.extract_mask_api(folderhash)
         response = make_response_plain(binary)
         response.headers.set('Content-Type', mimetype)
         return response
@@ -344,8 +367,10 @@ def incorrect_replace_image(imageid_int):
 # how to check incomplete uploaded images?
 
 @app.route(API_ENDPOINT_URL+'/<int:imageid_int>', methods=['DELETE'])
-def destroy_iamge(folderhash):
+def destroy_iamge(imageid_int):
     """ DELETE: Removes all current representations of the target resource given by a URL """
+    folderhash = folderhash_from_imageid(imageid_int)
+    del imageid_int
     ownership_proof = "DELETE s arguments"
     images_service.kill_image(folderhash, ownership_proof)
     """
