@@ -120,13 +120,14 @@ const BSON = require('bson');
 //const data = BSON.serialize(doc);
 //const doc = BSON.deserialize(data);
 
+var globalresult_image_hash = -1
+
 function test_upload(file_name) {
-    with_file_contents(file_name,function(binary_content_buffer) {
+    return with_file_contents(file_name, function(binary_content_buffer) {
         // binary_content_buffer: <Buffer ...>
         // binary_content {'data': [255, 216, ...], 'type': 'Buffer'}
         var body = {binary_content: binary_content_buffer, filename:file_name};
-
-        fetch(API_BASE+API+'upload', {
+        return fetch(API_BASE+API+'upload', {
             method: 'POST',
             body: BSON.serialize(body),
             headers: { 'Content-Type': 'application/json' },
@@ -156,7 +157,7 @@ function test_upload(file_name) {
                   }
                 }
             */
-            global_image_hash = image_info['image-id'];
+            globalresult_image_hash = image_info['image-id'];
             var saved_fileformat = image_info['metadata']['mimetype'];
             var recovered_name = image_info['metadata']['orig-name'];
             console.log("   Saved file format: ", saved_fileformat);
