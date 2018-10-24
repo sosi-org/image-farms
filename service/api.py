@@ -331,7 +331,7 @@ def upload_file():
         body = bson.loads(request.data)  # is binary
         binary_content = body['binary_content']
         filename = body['filename']
-        meta_data, folderhash = images_service.do_actual_upload(filename, binary_content)
+        meta_data, folderhash = images_service.do_actual_upload(filename, binary_content, pre_delete=True)
 
         #content metadata (almost like a cache of one aspect of the contents: image format, and maybe width, height)
         response = make_response_jsonified({
@@ -354,7 +354,7 @@ def upload_file():
 
 
 #@app.route(API_ENDPOINT_URL+'/<int:imageid_int>/', methods=['GET'])
-@app.route(API_ENDPOINT_URL+'/<int:imageid_int>', methods=['GET', 'POST', 'PUT'])
+@app.route(API_ENDPOINT_URL+'/<int:imageid_int>', methods=['GET', 'POST'])
 def incorrect_usage1(imageid_int):
     """ No such api opetaion. """ #no_operation_on_main
     return incorrect_usage_note_response("Use api/<imageid>/original or gif or jpeg or ...")
@@ -369,8 +369,8 @@ def incorrect_replace_image(imageid_int):
 @app.route(API_ENDPOINT_URL+'/<int:imageid_int>', methods=['DELETE'])
 def destroy_iamge(imageid_int):
     """ DELETE: Removes all current representations of the target resource given by a URL """
-    log_err("DELETE on the way.")
     folderhash = folderhash_from_imageid(imageid_int)
+    log_err("DELETE on the way. on "+str(imageid_int))
     del imageid_int
     ownership_proof = "DELETE s arguments"
     images_service.kill_image(folderhash, ownership_proof)
