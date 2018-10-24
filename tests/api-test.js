@@ -209,8 +209,8 @@ if (! fs.existsSync(IMAGE_STORE) )
 
 test_upload('./images/tiny_butterfly.jpg', (imagehash)=>{
 
-    // Delay to notice, by eye the FS creates and deletes an image.
-    var DELAY_MSEC = 1000;
+    // Delay by 1000 to notice, by eye the FS creates and deletes an image.
+    var DELAY_MSEC = 0;
     setTimeout(()=>{
     console.log("Just uploaded ", imagehash);
 
@@ -221,6 +221,7 @@ test_upload('./images/tiny_butterfly.jpg', (imagehash)=>{
             console.log("Just uploaded ", imagehash);
             throw new Error('Tester: File is not created on fs.');
         }
+        console.log("The generated files exist in folder ", imagehash,". I just double checked them.");
 
         // use(data)
 
@@ -229,7 +230,7 @@ test_upload('./images/tiny_butterfly.jpg', (imagehash)=>{
         .del(API+imagehash+'')
         .expectStatus(200)
         .end((err,res,body)=>{
-            console.log("post-DELETION");
+            console.log("post-DELETION:");
 
             if (
                 fs.existsSync(IMAGE_STORE+imagehash+"/original.bin")
@@ -238,6 +239,7 @@ test_upload('./images/tiny_butterfly.jpg', (imagehash)=>{
             ) {
                 throw new Error('Was supposed to be DELETED from fs. It is not.');
             }
+            console.log("The files in folder ", imagehash,"are cleared up. I just double checked.");
         });
     }
 
