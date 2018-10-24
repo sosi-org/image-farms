@@ -37,7 +37,7 @@ import os
 """
 
 
-JSON_MIME='application/json'
+#JSON_MIME='application/json'
 
 #from enum import Enum, unique
 
@@ -165,8 +165,11 @@ def retrieve_original(imageid_int):
 
     except ImageIdNotFound as err:
             #abort(ERROR_404)
-            return error404_response_image_notfound(err.imageid)
+            #return error404_response_image_notfound(err.imageid)
+            return err.response404()
+
     except UnknownFileFormat as uierr:
+        log_err("This should not happen: " + repr(uierr))
         return uierr.response404(imgageid=imageid_int, comment="MIME type information could not be found from the orignal image file.")
         #make_response_jsonified({'error': repr(uierr), 'comment':"MIME type information could not be found from the orignal image file."}, ERROR_404)
 
@@ -318,7 +321,7 @@ from logger import *
 
 @app.route(API_ENDPOINT_URL+'/upload', methods=['PUT', 'GET', 'DELETE', 'PATH', 'OPTIONS'])
 def put_file():
-    log_err("no PUT")
+    log_err("PUT,etc are not supported with UPLOAD")
     #err = NotImplemented("PUT", moreinfo="Use DELETE and then POST, instead.)
     return make_response_jsonified({'error': "Use DELETE and then POST, instead."}, ERROR_404)
 
@@ -344,13 +347,16 @@ def upload_file():
             'metadata': meta_data,
             'image-id': folderhash,
         }, CODES.OK_CREATED_201)
-        response.headers.set('Content-Type', JSON_MIME)
+        #response.headers.set('Content-Type', JSON_MIME)
         return response
 
     except Respond404ableException as ex:
         log_err("during upload: " + repr(ex))
-        #return err.response404(imageid=imageid_int, comment="MIME type information could not be found from the orignal image file.")
-        return make_response_jsonified({'error': "Use DELETE and then POST, instead."}, ERROR_404)
+        # #return err.response404(imageid=imageid_int, comment="MIME type information could not be found from the orignal image file.")
+        # response = make_response_jsonified({'error': "Use DELETE and then POST, instead."}, ERROR_404)
+        # #response.headers.set('Content-Type', JSON_MIME)
+        response = ex.response404()
+        return response
 
     """
     except Exception as err:
@@ -376,7 +382,7 @@ def incorrect_replace_image(imageid_int):
 def destroy_iamge(imageid_int):
     """ DELETE: Removes all current representations of the target resource given by a URL """
     folderhash = folderhash_from_imageid(imageid_int)
-    log_err("DELETE on the way. on "+str(imageid_int))
+    log_highlight("DELETE on the way. on "+str(imageid_int))
     del imageid_int
     ownership_proof = "DELETE s arguments"
     images_service.kill_image(folderhash, ownership_proof)
@@ -392,7 +398,7 @@ def destroy_iamge(imageid_int):
         # If verbose:
         'comment': "Image deleted and hash folder cleared.",
     }, CODES.DELETE_DONE)
-    response.headers.set('Content-Type', JSON_MIME)
+    #response.headers.set('Content-Type', JSON_MIME)
     return response
 
 """

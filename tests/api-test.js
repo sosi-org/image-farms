@@ -23,6 +23,54 @@ var fetch = require('node-fetch');
 console.log("api-test.js .");
 
 
+var problems = [];
+function problem_appender(err, res, body) {
+    if (err) {
+        problems.push(err);
+    }
+}
+function process_end(err, res, body) {
+    problem_appender(err, res, body);
+    if (err) {
+        console.error("TYPEOF:**************", typeof(err));
+    }
+}
+
+/*
+// Problem: it is async
+function report_problems() {
+    console.log( "List of problems: " );
+    for(let i in problems) {
+        console.error( i + ": " + typeof (problems[i]) + "" );
+    }
+
+    console.log( "Full list of problems: " );
+    for(let i in problems) {
+        console.error(i, problems[i] );
+    }
+}
+*/
+
+/*
+function default_end(self) {
+}
+*/
+//function default_end(self) {
+//}
+
+/*
+Client.prototype.end = function(end) {
+  if (end) return this.prepare(end);
+
+  var self = this;
+  return new Promise(function(resolve, reject) {
+    self.prepare(function(err, res, body) {
+      if (err) return reject(err);
+      resolve(res);
+    });
+  });
+};
+*/
 
 const API_BASE = 'http://localhost:5000'
 const API = '/progimage.com/api/v1.0/'
@@ -35,6 +83,7 @@ hippie()
 //.expectHeader('Content-Type', 'application/json; charset=utf-8')
 .end(function(err, res, body) {
   //console.log("body0",body);
+  process_end(err, res, body);
   if (err) {
       console.log("Some error:");
       console.log(err);
@@ -59,6 +108,7 @@ hippie()
 .get(API+'0/original')
 .expectStatus(200)
 .end(function(err, res, body) {
+  process_end(err, res, body);
   if (err) {
       console.log("===========================");
       console.log("body2",body);
@@ -74,6 +124,7 @@ hippie()
 .get(API+'0/jpeg')
 .expectStatus(200)
 .end(function(err, res, body) {
+    process_end(err, res, body);
     if (err) {
         console.log("Some problem: ", err);
     }
@@ -90,6 +141,7 @@ hippie()
 .get(API+'0/gif')
 .expectStatus(200)
 .end(function(err, res, body) {
+  process_end(err, res, body);
   if (err) {
       console.log("Some problem: ", err);
 
@@ -184,7 +236,7 @@ function test_upload(file_name, then_callback) {
         })
         .catch(
              (err) =>
-            console.log("Upload: REST sent back Exception(2):", err)
+            console.log("Upload: REST sent back Exception(2): ", err)
             /*
             fetch:
                 body used already for: http://localhost:5000/progimage.com/api/v1.0/upload
@@ -232,7 +284,9 @@ test_upload('./images/tiny_butterfly.jpg', (imagehash)=>{
         .del(API+imagehash+'')
         .expectStatus(204)
         .end((err,res,body)=>{
+
             console.log("post-DELETION:");
+            process_end(err, res, body);
 
             if (err) {
                 console.log("Some problem: ", err);
@@ -257,7 +311,56 @@ test_upload('./images/tiny_butterfly.jpg', (imagehash)=>{
 
 
 
-//fetch('http://jsonplaceholder.typicode.com/posts/1')
+// More uploads and DELETE s:
+
+
+var TEST_IMAGES = ['./images/potato-block.png', ];
+for (i in TEST_IMAGES) {
+    test_upload(TEST_IMAGES[i], (imagehash)=>{
+
+        // Delay by 1000 to notice, by eye the FS creates and deletes an image.
+        var DELAY_MSEC = 500;
+        setTimeout(()=>{
+            console.log("Just uploaded ", imagehash);
+
+            var TEST_DELETE = true;
+            if (TEST_DELETE)
+            {
+                if (!fs.existsSync(IMAGE_STORE+imagehash+"/original.bin")) {
+                    console.log("Just uploaded ", imagehash);
+                    throw new Error('Tester: File is not created on fs.');
+                }
+                console.log("The generated files exist in folder ", imagehash,". I just double-checked them.");
+
+                hippie()
+                .base(API_BASE)
+                .del(API+imagehash+'')
+                .expectStatus(204)
+                .end((err,res,body)=>{
+                    console.log("post-DELETION:");
+                    process_end(err, res, body);
+                    if (err) {
+                        console.log("Some problem: ", err);
+                    }
+                    // Othewise, it says nothing!
+
+                    if (
+                        fs.existsSync(IMAGE_STORE+imagehash+"/original.bin")
+                        ||
+                        fs.existsSync(IMAGE_STORE+imagehash+"/")
+                    ) {
+                        throw new Error('Was supposed to be DELETED from fs. It is not.');
+                    }
+                    console.log("The files in folder ", imagehash,"are cleared up. I just double-checked.");
+                });
+            }
+
+        }, DELAY_MSEC);
+
+    });
+}
+
+
 
 /*
 const fs = require('fs');
@@ -320,43 +423,20 @@ for (i in ua)
     .get(point)
     //.get(API+NON_EXISTING_IMAGE_ID+'/original')
     .expectStatus(404)  // correctly receive an error (REST error)
-    .end();
-    /*
+    //.end();
+    //.end(process_end);
     .end(function(err, res, body) {
       if (err) {
-          console.log("correctly received an exception:", typeof err, err);
+          console.log("correctly received an exception:", typeof err);
+          // dont print the contents of resp/error.
       } else {
-          throw new Exception("must have thrown error");
+          console.error("Something is/ wrong:");
+          // FIXME: handle these negative errors.
+          //console.error(res); // too long
+          //throw new Exception("must have thrown error");
       }
     });
-    */
 }
-
-
-
-
-
-// TESTING DELETION
-/*
-//test_upload(file_name)
-test_upload('./images/tiny_butterfly.jpg') .then((s)=>{
-    console.log("AAAAAAAAAAAAAAA1");
-})
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

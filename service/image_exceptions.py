@@ -4,7 +4,11 @@
     ImageException (has imageid, error)
 """
 from logger import *
-from custom_responses import error404_response_image_notfound
+#from custom_responses import error404_response_image_notfound, make_response_jsonified
+from custom_responses import make_response_jsonified
+
+# No flask/http modules are imported here.
+# Any http/flask-related function is via the `custom_responses` module.
 
 class Respond404ableException(Exception):
     def __init__(self, *ka, **kw):
@@ -47,7 +51,12 @@ class ImageIdNotFound(ImageException):
     #    self.imageid = imageid
     def response404(self):
         log_err("self.imageid   "+str(self.imageid  ))
-        return error404_response_image_notfound(self.imageid)   #,self
+        #return error404_response_image_notfound(self.imageid)   #,self
+        info_dict = {'error': "Image not found:"+str(self.imageid), "imageid": self.imageid, 'exception': repr(self)}
+        r = make_response_jsonified(info_dict, 404)
+        return r
+        #{'error': "image not found", "imageid": imageid, 'exception': repr(exception)},
+
 
 # mess
 class UnknownFileFormat(ImageException):
@@ -55,20 +64,30 @@ class UnknownFileFormat(ImageException):
         #self.info = info
         #if excep is not None:
         #    self.excep = excep
-    def __init__(self, imageid, comment=None):
+    def __init__(self, imageid, comment=None, imageio_metadata=None, format=None):
         super().__init__(imageid)
         #self.imageid = imageid
         self.comment = comment
+        self.imageio_metadata = imageio_metadata
+        self.format = format
 
     def response404(self, comment=None):
-        if comment is None:
-            #return error404_response_image_notfound(self.info, self.excep if self.excep is not None else self)
-            return error404_response_image_notfound(self.imageid)
-        else:
+        #if comment is None:
+        #    #return error404_response_image_notfound(self.info, self.excep if self.excep is not None else self)
+        #    return error404_response_image_notfound(self.imageid)
+        #else:
+        if True:
             #return uierr.response404(comment="MIME type information could not be found from the orignal image file.")
             #return make_response_jsonified({'error': repr(self.info), 'comment':"MIME type information could not be found from the orignal image file."}, 404)
             # FIXME: call error404_xxxx....
-            return make_response_jsonified({'error': repr(self.imageid), 'comment':self.comment}, 404)
+            info_dict = {'error': repr(self.imageid), 'comment':self.comment, "imageio_metadata":self.imageio_metadata, 'format':self.format}
+            print("HERE")
+            print(info_dict)
+            r = make_response_jsonified(info_dict, 404)
+            print("rrrrrrrrrrrrrrrrrrrr")
+            print(r)
+            print("rrrrrrrrrrrrrrrrrrrr")
+            return r
 
 
 class ImageAlreadyExists(ImageException):

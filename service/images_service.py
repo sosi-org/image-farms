@@ -79,6 +79,11 @@ def fetchlocal_original_mimetype_fromcontent(folderhash):
     filename = IMAGE_BASE + folderhash+"/"+FIXEDNAME_ORIGINALBINARY
     with imageio.get_reader(filename) as r:
         fileformat_md = r.get_meta_data()
+
+        #
+        graphics_fileformat = str(r.format.name)  # !
+        assert type(graphics_fileformat) is str
+
         #print(fileformat_md)
         if 'version' in fileformat_md and fileformat_md['version'] == b'GIF87a':
             #log("GIF")
@@ -94,9 +99,17 @@ def fetchlocal_original_mimetype_fromcontent(folderhash):
                 {'jfif_version': (1, 1), 'dpi': (72, 72), 'jfif': 257, 'jfif_unit': 1, 'jfif_density': (72, 72)}
             """
             return MIME_LOOKUP['jpeg']
+        #elif graphics_fileformat.name == 'PNG-PIL':
+        #    return MIME_LOOKUP['png']
         else:
-            log_err("unknown type")
-            raise UnknownFileFormat(imageid_int=repr(folderhash), comment="ImageIO could not detect the original image type.")
+            log_err("unknown image type. (Could be PNG which is not implemented)")
+            log_err("imageio output: "+json.dumps(fileformat_md)+"   format:"+graphics_fileformat)
+            raise UnknownFileFormat(
+                    imageid=repr(folderhash),
+                    comment="ImageIO could not detect the original image type. ",
+                    imageio_metadata=json.dumps(fileformat_md),
+                    format=graphics_fileformat,
+            )
         #return mimetype
     #throw image does not exist
 
@@ -180,8 +193,9 @@ def retrieve_original(folderhash):
     """
     try:
         #original_mimetype = fetchlocal_original_mimetype_fromjson(folderhash)
+        # FIXME: We don't need to create this again. We can use the cached vertion.
+        #   Idea: use a @cache decorator
         original_mimetype = fetchlocal_original_mimetype_fromcontent(folderhash)
-
         log("Retrieving original image. Original mimetype: " + original_mimetype)
         #extention = EXTENTIONS[original_mimetype]
 

@@ -37,6 +37,20 @@ def log(message, *a,**kw):
     print('',end='',flush=True)
     logger_lock.release()
 
+def log_highlight(message, *a,**kw):
+    check_none_brutal(a)
+    check_none_brutal(kw)
+    global logger_lock
+    logger_lock.acquire()
+    if True:
+        print(CGREEN, end="")
+        print("Log: api server: ", end="")
+        print(CYELLOW, end="")
+        print(message, end="")
+        print(C_PLAIN)
+    print('',end='',flush=True)
+    logger_lock.release()
+
 def log_warn(message, *a,**kw):
     check_none_brutal(a)
     check_none_brutal(kw)
