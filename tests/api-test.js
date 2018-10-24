@@ -193,26 +193,55 @@ function test_upload(file_name, then_callback) {
     );
 }
 
+if (process.env.IMAGESTORE){
+    var IMAGE_STORE = process.env.IMAGESTORE;
+    if (IMAGE_STORE.slice(0,1) != '/')
+        IMAGE_STORE = IMAGE_STORE + '/';
+} else {
+    //console.warn("IMAGESTORE env not set.");
+    var IMAGE_STORE = "./imagestore/";
+    if (! fs.existsSync(IMAGE_STORE) )
+        var IMAGE_STORE = "../imagestore/";
+    console.warn("IMAGESTORE env not set. Using default: ", IMAGE_STORE);
+}
+if (! fs.existsSync(IMAGE_STORE) )
+    console.error("IMAGESTORE env not set.");
+
 test_upload('./images/tiny_butterfly.jpg', (imagehash)=>{
+
+    // Delay to notice, by eye the FS creates and deletes an image.
+    var DELAY_MSEC = 1000;
+    setTimeout(()=>{
     console.log("Just uploaded ", imagehash);
 
-    /*
-    if (!fs.existsSync("./imagestore/"+imagehash+"/original.bin")) {
-        throw new Error('is not created');
+    var TEST_DELETE = true;
+    if (TEST_DELETE)
+    {
+        if (!fs.existsSync(IMAGE_STORE+imagehash+"/original.bin")) {
+            console.log("Just uploaded ", imagehash);
+            throw new Error('Tester: File is not created on fs.');
+        }
+
+        // use(data)
+
+        hippie()
+        .base(API_BASE)
+        .del(API+imagehash+'')
+        .expectStatus(200)
+        .end((err,res,body)=>{
+            console.log("post-DELETION");
+
+            if (
+                fs.existsSync(IMAGE_STORE+imagehash+"/original.bin")
+                ||
+                fs.existsSync(IMAGE_STORE+imagehash+"/")
+            ) {
+                throw new Error('Was supposed to be DELETED from fs. It is not.');
+            }
+        });
     }
 
-    hippie()
-    .base(API_BASE)
-    .delete(API+imagehash+'')
-    .expectStatus(200)
-    .end((err,res,body)=>{
-        console.log("post-DELETION");
-
-        if (fs.existsSync("./imagestore/"+imagehash+"/original.bin")) {
-            throw new Error('Was supposed to be DELETED.');
-        }
-    });
-    */
+    }, DELAY_MSEC);
 
 
 });
