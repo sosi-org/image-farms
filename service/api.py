@@ -44,7 +44,12 @@ JSON_MIME='application/json'
 class CODES:
     OK_CREATED_201 = 201
     OK_FINE200 = 200
+    OK_204_NO_CONTENT = 204
     ERROR_404 = 404
+    DELETE_DONE = OK_204_NO_CONTENT
+    """
+    A successful response SHOULD be 200 (OK) if the response includes an entity describing the status, 202 (Accepted) if the action has not yet been enacted, or 204 (No Content) if the action has been enacted but the response does not include an entity.
+    """
 
 ERROR_404 = CODES.ERROR_404
 
@@ -321,6 +326,7 @@ def put_file():
 #from flask import Flask, flash, request, redirect, url_for
 
 
+
 @app.route(API_ENDPOINT_URL+'/upload', methods=['POST'])
 def upload_file():
     # log_err("during upload: ", repr("ex"))
@@ -331,7 +337,7 @@ def upload_file():
         body = bson.loads(request.data)  # is binary
         binary_content = body['binary_content']
         filename = body['filename']
-        meta_data, folderhash = images_service.do_actual_upload(filename, binary_content, pre_delete=False)
+        meta_data, folderhash = images_service.do_actual_upload(filename, binary_content)
 
         #content metadata (almost like a cache of one aspect of the contents: image format, and maybe width, height)
         response = make_response_jsonified({
@@ -380,6 +386,14 @@ def destroy_iamge(imageid_int):
     else:
         raise "Something went wrong"
     """
+    response = make_response_jsonified({
+        #'metadata': meta_data,
+        'image-id': folderhash,
+        # If verbose:
+        'comment': "Image deleted and hash folder cleared.",
+    }, CODES.DELETE_DONE)
+    response.headers.set('Content-Type', JSON_MIME)
+    return response
 
 """
 @app.route(API_ENDPOINT_URL+'/favicon.ico', methods=['GET'])

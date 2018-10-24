@@ -74,11 +74,13 @@ hippie()
 .get(API+'0/jpeg')
 .expectStatus(200)
 .end(function(err, res, body) {
-  if (err) {
-      //console.log("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM", err);
-      //FIXME
-      throw err;
-  }
+    if (err) {
+        console.log("Some problem: ", err);
+    }
+
+    if (err) {
+        throw err;
+    }
 });
 
 
@@ -89,7 +91,7 @@ hippie()
 .expectStatus(200)
 .end(function(err, res, body) {
   if (err) {
-      console.log("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM", err);
+      console.log("Some problem: ", err);
 
       //console.log("body2",body);
       throw err;
@@ -221,16 +223,21 @@ test_upload('./images/tiny_butterfly.jpg', (imagehash)=>{
             console.log("Just uploaded ", imagehash);
             throw new Error('Tester: File is not created on fs.');
         }
-        console.log("The generated files exist in folder ", imagehash,". I just double checked them.");
+        console.log("The generated files exist in folder ", imagehash,". I just double-checked them.");
 
         // use(data)
 
         hippie()
         .base(API_BASE)
         .del(API+imagehash+'')
-        .expectStatus(200)
+        .expectStatus(204)
         .end((err,res,body)=>{
             console.log("post-DELETION:");
+
+            if (err) {
+                console.log("Some problem: ", err);
+            }
+            // Othewise, it says nothing!
 
             if (
                 fs.existsSync(IMAGE_STORE+imagehash+"/original.bin")
@@ -239,7 +246,7 @@ test_upload('./images/tiny_butterfly.jpg', (imagehash)=>{
             ) {
                 throw new Error('Was supposed to be DELETED from fs. It is not.');
             }
-            console.log("The files in folder ", imagehash,"are cleared up. I just double checked.");
+            console.log("The files in folder ", imagehash,"are cleared up. I just double-checked.");
         });
     }
 

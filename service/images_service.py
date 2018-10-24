@@ -23,13 +23,22 @@ IMAGE_BASE = '../imagestore/'
 
 # code-time constant
 service_config = {
-    'max-size': MEGA,
-    'max-width': 10000,
+
+    'max-size': 100*MEGA,      # Maximum size of hte image file
+
+    'max-width': 10000,        # Maximum dimension, either width or height
+
+    'upload-replaces': True,
+    # Whether you can upload an image that is already uploaded.
+    # If True, first deletes the contents before doing the upload.
+    # It should be False in production, but it is set to True for test purposes.
 }
+
+FIRST_DELETE_BEFORE_UPLOAD = service_config['upload-replaces']
 
 # load-time (after deploy-time) constant
 service_config_state = {
-    'partition-id': 1,
+    'partition-id': 1,         # For future use.
 }
 
 # implementation consts
@@ -277,7 +286,7 @@ def manual_cleanup(folderhash, delete_cached=False):
         raise ImplementationError("consistency: folder cannot be removed. Possibly non-empty.")
         # i.e. check if all_cached_filenames() covers all possible files.
 
-def do_actual_upload(original_clientside_filename, file_content_binary, pre_delete=True):
+def do_actual_upload(original_clientside_filename, file_content_binary, pre_delete=FIRST_DELETE_BEFORE_UPLOAD):
 
     print(type(file_content_binary))  # <class bytes>
     #os.path.join(app.config['UPLOAD_FOLDER'], filename)
