@@ -138,12 +138,12 @@ Test: metadata generation called only after (uploaded) file saved
 
 
 
-@app.route(API_ENDPOINT_URL+'/<int:imgid>/original', methods=['GET'])
-def retrieve_original(imgid):
+@app.route(API_ENDPOINT_URL+'/<int:imageid_int>/original', methods=['GET'])
+def retrieve_original(imageid_int):
     # from flask import send_file
     try:
         (image_binary, original_mimetype, original_name) = \
-            images_service.retrieve_original(imgid)
+            images_service.retrieve_original(imageid_int)
 
         response = make_response_plain(image_binary)
         response.headers.set('Content-Type', original_mimetype)
@@ -158,7 +158,7 @@ def retrieve_original(imgid):
             #abort(ERROR_404)
             return error404_response_image_notfound(err.imageid)
     except UnknownImageType as uierr:
-        return uierr.response404(imgageid=imgid, comment="MIME type information could not be found from the orignal image file.")
+        return uierr.response404(imgageid=imageid_int, comment="MIME type information could not be found from the orignal image file.")
         #make_response_jsonified({'error': repr(uierr), 'comment':"MIME type information could not be found from the orignal image file."}, ERROR_404)
 
     """
@@ -220,13 +220,13 @@ def convert_to_format_and_respond(fileid, image_format):
     #    return error404_response_image_notfound(fileid, err)
 
 
-@app.route(API_ENDPOINT_URL+'/<int:imgid>/jpeg', methods=['GET'])
-def convert_jpeg(imgid):
+@app.route(API_ENDPOINT_URL+'/<int:imageid_int>/jpeg', methods=['GET'])
+def convert_jpeg(imageid_int):
     log("LJPEGG")
-    return convert_to_format_and_respond(imgid, 'jpeg')
+    return convert_to_format_and_respond(imageid_int, 'jpeg')
     """
     try:
-        (binary, mimetype) =  images_service.convert_jpeg(imgid)
+        (binary, mimetype) =  images_service.convert_jpeg(imageid_int)
         response = make_response_plain(binary)
         response.headers.set('Content-Type', mimetype)
         return response
@@ -234,12 +234,12 @@ def convert_jpeg(imgid):
         return ex.response404()
     """
 
-@app.route(API_ENDPOINT_URL+'/<int:imgid>/gif', methods=['GET'])
-def convert_gif(imgid):
-    return convert_to_format_and_respond(imgid, 'gif')
+@app.route(API_ENDPOINT_URL+'/<int:imageid_int>/gif', methods=['GET'])
+def convert_gif(imageid_int):
+    return convert_to_format_and_respond(imageid_int, 'gif')
     """
     try:
-        (binary, mimetype) = images_service.convert_gif(imgid)
+        (binary, mimetype) = images_service.convert_gif(imageid_int)
         response = make_response_plain(binary)
         response.headers.set('Content-Type', mimetype)
         return response
@@ -248,12 +248,12 @@ def convert_gif(imgid):
     """
 
 
-@app.route(API_ENDPOINT_URL+'/<int:imgid>/png', methods=['GET'])
-def convert_png(imgid):
-    return convert_to_format_and_respond(imgid, 'png')
+@app.route(API_ENDPOINT_URL+'/<int:imageid_int>/png', methods=['GET'])
+def convert_png(imageid_int):
+    return convert_to_format_and_respond(imageid_int, 'png')
     """
     try:
-        (binary, mimetype) = images_service.convert_png(imgid)
+        (binary, mimetype) = images_service.convert_png(imageid_int)
         response = make_response_plain(binary)
         response.headers.set('Content-Type', mimetype)
         return response
@@ -261,10 +261,10 @@ def convert_png(imgid):
         return ex.response404()
     """
 
-@app.route(API_ENDPOINT_URL+'/<int:imgid>/mask', methods=['GET'])
-def extract_mask_api(imgid):
+@app.route(API_ENDPOINT_URL+'/<int:imageid_int>/mask', methods=['GET'])
+def extract_mask_api(imageid_int):
     try:
-        (binary, mimetype) =  images_service.extract_mask_api(imgid)
+        (binary, mimetype) =  images_service.extract_mask_api(imageid_int)
         response = make_response_plain(binary)
         response.headers.set('Content-Type', mimetype)
         return response
@@ -316,7 +316,7 @@ def upload_file():
 
     except Respond404ableException as ex:
         log_err("during upload: " + repr(ex))
-        #return err.response404(imageid=imgid, comment="MIME type information could not be found from the orignal image file.")
+        #return err.response404(imageid=imageid_int, comment="MIME type information could not be found from the orignal image file.")
         return make_response_jsonified({'error': "Use DELETE and then POST, instead."}, ERROR_404)
 
     """
@@ -326,20 +326,20 @@ def upload_file():
     """
 
 
-#@app.route(API_ENDPOINT_URL+'/<int:imgid>/', methods=['GET'])
-@app.route(API_ENDPOINT_URL+'/<int:imgid>', methods=['GET', 'POST', 'PUT'])
-def incorrect_usage1(imgid):
+#@app.route(API_ENDPOINT_URL+'/<int:imageid_int>/', methods=['GET'])
+@app.route(API_ENDPOINT_URL+'/<int:imageid_int>', methods=['GET', 'POST', 'PUT'])
+def incorrect_usage1(imageid_int):
     """ No such api opetaion. """ #no_operation_on_main
     return incorrect_usage_note_response("Use api/<imageid>/original or gif or jpeg or ...")
 
-@app.route(API_ENDPOINT_URL+'/<int:imgid>', methods=['PUT'])
-def incorrect_replace_image(imgid):
+@app.route(API_ENDPOINT_URL+'/<int:imageid_int>', methods=['PUT'])
+def incorrect_replace_image(imageid_int):
     """ No such api operation. """
     return incorrect_usage_note_response("Modification of an uploaded image is not supported in this version.")
 
 # how to check incomplete uploaded images?
 
-@app.route(API_ENDPOINT_URL+'/<int:imgid>', methods=['DELETE'])
+@app.route(API_ENDPOINT_URL+'/<int:imageid_int>', methods=['DELETE'])
 def destroy_iamge(folderhash):
     """ DELETE: Removes all current representations of the target resource given by a URL """
     ownership_proof = "DELETE s arguments"

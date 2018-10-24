@@ -89,7 +89,7 @@ def fetchlocal_original_mimetype_fromcontent(fileid):
             return MIME_LOOKUP['jpeg']
         else:
             log_err("unknown type")
-            raise UnknownImageType(imgid=repr(fileid), comment="ImageIO could not detect the original image type.")
+            raise UnknownImageType(imageid_int=repr(fileid), comment="ImageIO could not detect the original image type.")
         #return mimetype
     #throw image does not exist
 
@@ -156,10 +156,10 @@ def fetchlocal_binary(fileid):
 
 
 @staticmethod
-def retrieve_original(imgid):
-    fileid = file_id_from_imageid(imgid)
+def retrieve_original(imageid_int):
+    fileid = folderhash_from_imageid(imageid_int)
     """
-    if imgid == 0:
+    if imageid_int == 0:
         print("Default image requested.")
         #def get_image(pid):
         #image_binary = read_image(pid)
@@ -168,8 +168,8 @@ def retrieve_original(imgid):
         # image_id
         fileid = "sample0000"
     else:
-        #raise ImageIdNotFound(imgid)
-        fileid = str(imgid)
+        #raise ImageIdNotFound(imageid_int)
+        fileid = str(imageid_int)
     """
 
     #original_mimetype = fetchlocal_original_mimetype_fromjson(fileid)
@@ -267,7 +267,7 @@ def do_actual_upload(original_clientside_filename, file_content_binary):
 
     # file_id is in fact folder_id
     #local_filename
-    folderhash = file_id_from_imageid(image_id)  # i.e. imagehash
+    folderhash = folderhash_from_imageid(image_id)  # i.e. imagehash
     local_foldername = foldername_from_folderhash(folderhash)
     local_filename = local_foldername+'/'+FIXEDNAME_ORIGINALBINARY
     manual_cleanup(folderhash)
@@ -393,21 +393,21 @@ imageid:  foldername
 """
 
 
-def file_id_from_imageid(imgid):
+def folderhash_from_imageid(imageid_int):
     # assert int
-    assert (imgid+2)/2 == (imgid)/2+1, repr(imgid)
+    assert (imageid_int+2)/2 == (imageid_int)/2+1, repr(imageid_int)
 
-    if imgid == 0:
+    if imageid_int == 0:
         fileid = "sample0000"
         return fileid
-    #elif imgid == 12:
+    #elif imageid_int == 12:
     #    file_id = "00012"
     #    return file_id
 
     #else:
-    #    #return error404_response_image_notfound(imgid)
-    #    raise ImageIdNotFound(imgid)
-    return str(imgid)
+    #    #return error404_response_image_notfound(imageid_int)
+    #    raise ImageIdNotFound(imageid_int)
+    return str(imageid_int)
 
 @staticmethod
 def foldername_from_folderhash(folderhash):
@@ -416,32 +416,32 @@ def foldername_from_folderhash(folderhash):
 
 
 """
-def convert_jpeg(imgid):
+def convert_jpeg(imageid_int):
 
     print("convertion requested.")
-    fileid = file_id_from_imageid(imgid)
+    fileid = folderhash_from_imageid(imageid_int)
 
     image_format = 'jpeg'   # same as extention
     return convert_to_format_and_respond(fileid, image_format)
 
 
-def convert_gif(imgid):
-    fileid = file_id_from_imageid(imgid)
+def convert_gif(imageid_int):
+    fileid = folderhash_from_imageid(imageid_int)
 
     image_format = 'gif'   # same as extention
     return convert_to_format_and_respond(fileid, image_format)
 
 
-def convert_png(imgid):
-    fileid = file_id_from_imageid(imgid)
+def convert_png(imageid_int):
+    fileid = folderhash_from_imageid(imageid_int)
     image_format = 'png'   # same as extention
     return convert_to_format_and_respond(fileid, image_format)
 """
 
-def extract_mask_api(imgid):
-    print("imgid",imgid)
-    fileid = file_id_from_imageid(imgid)
-    print("imgid",imgid)
+def extract_mask_api(imageid_int):
+    print("imageid_int",imageid_int)
+    fileid = folderhash_from_imageid(imageid_int)
+    print("imageid_int",imageid_int)
     image_format = 'png'   # same as extention
     return extract_mask(fileid)
     #return convert_to_format_and_respond(fileid, image_format)
