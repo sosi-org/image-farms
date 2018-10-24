@@ -53,20 +53,17 @@ FIXEDNAME_ORIGINALBINARY = "original.bin"
 #        # It is stateless
 #        pass
 
-def staticmethod(f):
-    return f
 
-@staticmethod
 def service_deployment_test():
     # Makes sure we are running from the correct folder
     assert os.path.exists(IMAGE_BASE)
 
-@staticmethod
+
 def invoices_listall():
     long_long_list = ['img1.png', 'img2.jpg']
     return {'images': long_long_list}
 
-@staticmethod
+
 def fetchlocal_original_mimetype_fromcontent(folderhash):
     """ Uses image.io to get the File Format NOT from the extention. Directly from the contents."""
     filename = IMAGE_BASE + folderhash+"/"+FIXEDNAME_ORIGINALBINARY
@@ -94,11 +91,11 @@ def fetchlocal_original_mimetype_fromcontent(folderhash):
     #throw image does not exist
 
 
-@staticmethod
+
 def metadata_filename_from_folderhash(folderhash):
     return IMAGE_BASE + folderhash+"/"+"metadata.json"
 
-@staticmethod
+
 def get_metadata_locally(folderhash):
     # fetchlocal_metadata()
     metadata_filename = metadata_filename_from_folderhash(folderhash)
@@ -106,7 +103,7 @@ def get_metadata_locally(folderhash):
     metadata = json.loads(meta_data_json)
     return metadata
 
-@staticmethod
+
 def generate_metadata(folderhash, original_name):
     """ from stored file.  original_name: uploaded name """
     metadata_filename = metadata_filename_from_folderhash(folderhash)
@@ -128,7 +125,7 @@ def generate_metadata(folderhash, original_name):
     #metadata = get_metadata_locally(folderhash)
     return
 
-@staticmethod
+
 # fetchlocal_mimetype
 def fetchlocal_original_mimetype_fromjson(folderhash, key='mimetype'):
     DEFAULT_MIMETYPE = "image/jpeg"
@@ -144,7 +141,7 @@ def fetchlocal_original_mimetype_fromjson(folderhash, key='mimetype'):
         return DEFAULT_MIMETYPE #, EXTENTIONS[DEFAULT_MIMETYPE]
 
 
-@staticmethod
+
 def fetchlocal_binary(folderhash):
     assert type(folderhash) is str
     filename = IMAGE_BASE + folderhash +"/"+FIXEDNAME_ORIGINALBINARY
@@ -156,7 +153,7 @@ def fetchlocal_binary(folderhash):
         raise ImageIdNotFound(folderhash)
 
 
-@staticmethod
+
 def retrieve_original(folderhash):
     #folderhash = folderhash_from_imageid(imageid_int)
     """
@@ -244,7 +241,6 @@ def manual_cleanup(folderhash):
         #raise InternalDataConsistencyError()
         raise ImplementationError("consistency: folder cannot be removed. Possibly non-empty.")
 
-@staticmethod
 def do_actual_upload(original_clientside_filename, file_content_binary):
 
     print(type(file_content_binary))  # <class bytes>
@@ -326,7 +322,7 @@ def kill_image(folderhash, ownership_proof):
     #return 1
 
 
-@staticmethod
+
 def extract_mask(folderhash):
     print("===========================================::")
     original_image_binary = fetchlocal_binary(folderhash)
@@ -351,7 +347,7 @@ def extract_mask(folderhash):
     converted_binary = open(local_cached_filename, "rb").read()
     return converted_binary, converted_mimetype
 
-@staticmethod
+
 def convert_to_format_and_respond(folderhash, image_format):
     assert type(folderhash) is str
     log("fetching binary file: "+ folderhash + " for: " + image_format)
@@ -422,7 +418,7 @@ def folderhash_from_imageid(imageid_int):
     return str(imageid_int)
 """
 
-#@staticmethod
+
 #def foldername_from_folderhash(folderhash):
 #    local_foldername = IMAGE_BASE + str(folderhash)
 #    return local_foldername
