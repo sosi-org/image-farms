@@ -203,7 +203,8 @@ def extract_mask(folderhash):
     """
 
 
-def convert_to_format_and_respond(folderhash, image_format):
+def convert_to_format_and_respond(imageid_int, image_format):
+    folderhash = str(imageid_int)
     assert type(folderhash) is str
     try:
         log_warn(image_format+ ".  req:"+folderhash)

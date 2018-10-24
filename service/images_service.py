@@ -398,7 +398,7 @@ file_id:  an <int>
 imageid:  foldername
 """
 
-
+"""
 def folderhash_from_imageid(imageid_int):
     # assert int
     assert (imageid_int+2)/2 == (imageid_int)/2+1, repr(imageid_int)
@@ -414,6 +414,7 @@ def folderhash_from_imageid(imageid_int):
     #    #return error404_response_image_notfound(imageid_int)
     #    raise ImageIdNotFound(imageid_int)
     return str(imageid_int)
+"""
 
 @staticmethod
 def foldername_from_folderhash(folderhash):
