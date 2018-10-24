@@ -19,6 +19,7 @@ def make_response_jsonified(content_dict, rest_code):
         assert 'error' in content_dict
     return make_response_plain(jsonify(content_dict), rest_code)
 
+#TODO: remove this?
 def error404_response_image_notfound(imageid, exception=None):
     # abort(404)
     if exception is not None:

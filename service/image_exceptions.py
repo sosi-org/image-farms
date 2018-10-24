@@ -4,6 +4,7 @@
     ImageException (has imageid, error)
 """
 from logger import *
+from custom_responses import error404_response_image_notfound
 
 class Respond404ableException(Exception):
     def __init__(self, *ka, **kw):
@@ -11,7 +12,9 @@ class Respond404ableException(Exception):
         super().__init__(*ka,**kw)
         #The error field (Readable info for API user)
         #self.error = error
-        log_err(type(self))
+
+        #dont call repr() here: We still haven't finished the constructor.
+        #log_err("(R) "+str(type(self))+" "+repr(self))
 
     def response404(self):
         raise NotImplemented()
@@ -22,15 +25,27 @@ class ImageException(Respond404ableException):
         super().__init__(*ka,**kw)
         #super().__init__(error, *ka,**kw)
         self.imageid = imageid
+        assert type(imageid) is int
+        #log_err(""+str(type(self))+" "+repr(self))
+        assert self.imageid == imageid
+        log_err(""+str(type(self))+":"+str(self.imageid))
     def response404(self):
         raise NotImplemented()
 
 class ImageIdNotFound(ImageException):
     def __init__(self, imageid):
         super().__init__(imageid)
+        assert self.imageid == imageid
+        #log_err("EEEEEEEEE>>>>>>>>>>>>>>>>>"+str(type(self))+" "+repr(self))
+
+#doesnt work
+    #def __repr__(self):
+    #    return "<ImageIdNotFound>(%s)"%str(self.imageid)
+
     #def __init__(self, imageid):
     #    self.imageid = imageid
     def response404(self):
+        log_err("self.imageid   "+str(self.imageid  ))
         return error404_response_image_notfound(self.imageid)   #,self
 
 # mess

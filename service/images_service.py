@@ -146,12 +146,19 @@ def fetchlocal_original_mimetype_fromjson(fileid, key='mimetype'):
 
 @staticmethod
 def fetchlocal_binary(fileid):
-    filename = IMAGE_BASE + fileid+"/"+"original.bin"
-    return open(filename, "rb").read()
+    filename = IMAGE_BASE + str(fileid)+"/"+FIXEDNAME_ORIGINALBINARY
+    if not os.path.exists(filename): #IMAGE_BASE + str(fileid)):
+        raise ImageIdNotFound(fileid)
+    try:
+        return open(filename, "rb").read()
+    except FileNotFoundError:
+        raise ImageIdNotFound(fileid)
 
 
 @staticmethod
 def retrieve_original(imgid):
+    fileid = file_id_from_imageid(imgid)
+    """
     if imgid == 0:
         print("Default image requested.")
         #def get_image(pid):
@@ -161,7 +168,9 @@ def retrieve_original(imgid):
         # image_id
         fileid = "sample0000"
     else:
-        raise ImageIdNotFound(imgid)
+        #raise ImageIdNotFound(imgid)
+        fileid = str(imgid)
+    """
 
     #original_mimetype = fetchlocal_original_mimetype_fromjson(fileid)
     original_mimetype = fetchlocal_original_mimetype_fromcontent(fileid)
@@ -198,6 +207,7 @@ class data_consistency_checks:
     @staticmethod
     def check02(local_filename, local_foldername):
         """ If the original.bin is not there, there should be nothing there. In fact there should be no folder!. Already rmdir()ed."""
+        return
         if not data_invariants.consistency_invariance02(local_filename, local_foldername):
             raise ImplementationError("consistency: "+repr((local_filename, local_foldername)))
         #if filesize(FIXEDNAME_ORIGINALBINARY) == 0:
@@ -307,7 +317,7 @@ def kill_image(folderhash, ownership_proof):
 
 @staticmethod
 def extract_mask(fileid):
-    print("===========================================")
+    print("===========================================::")
     original_image_binary = fetchlocal_binary(fileid)
     im = imageio.imread(original_image_binary)
 
@@ -332,7 +342,7 @@ def extract_mask(fileid):
 
 @staticmethod
 def convert_to_format_and_respond(fileid, image_format):
-    log("fetching binary file: "+ fileid + " for: " + image_format)
+    log("fetching binary file: "+ str(fileid) + " for: " + image_format)
 
     """ Note: I dont cache here. It is up to the browser and server to cache it."""
 
@@ -405,7 +415,7 @@ def foldername_from_folderhash(folderhash):
     return local_foldername
 
 
-
+"""
 def convert_jpeg(imgid):
 
     print("convertion requested.")
@@ -426,6 +436,7 @@ def convert_png(imgid):
     fileid = file_id_from_imageid(imgid)
     image_format = 'png'   # same as extention
     return convert_to_format_and_respond(fileid, image_format)
+"""
 
 def extract_mask_api(imgid):
     print("imgid",imgid)

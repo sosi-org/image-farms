@@ -75,7 +75,8 @@ hippie()
 .expectStatus(200)
 .end(function(err, res, body) {
   if (err) {
-      console.log(err);
+      //console.log("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM", err);
+      //FIXME
       throw err;
   }
 });
@@ -88,6 +89,8 @@ hippie()
 .expectStatus(200)
 .end(function(err, res, body) {
   if (err) {
+      console.log("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM", err);
+
       //console.log("body2",body);
       throw err;
   }
@@ -225,16 +228,22 @@ function test_upload(fs, file_name) {
 
 NON_EXISTING_IMAGE_ID = '123123'
 
-for (point in [
+ua = [
+        //API_BASE+
         API+NON_EXISTING_IMAGE_ID+'/original',
         API+NON_EXISTING_IMAGE_ID+'/gif',
         API+NON_EXISTING_IMAGE_ID+'/jpeg',
-    ])
+        API+NON_EXISTING_IMAGE_ID+'/png',
+    ]
+
+for (i in ua)
 {
+    point = ua[i]
+
     hippie()
     .base(API_BASE)
-    //.get(point)
-    .get(API+NON_EXISTING_IMAGE_ID+'/original')
+    .get(point)
+    //.get(API+NON_EXISTING_IMAGE_ID+'/original')
     .expectStatus(404)  // correctly receive an error (REST error)
     .end();
     /*

@@ -191,55 +191,85 @@ def extract_mask(fileid):
     except ImageException as imexc:
         return imexc.response404()  # unsure
 
+    """
+    #FIXME: Direct usae of 'Exception' is discouraged
     except Exception as err:
         #abort(ERROR_404)
         #return make_response_jsonified({'error': repr(err)}, ERROR_404)
         # error	"OSError('JPEG does not support alpha channel.',)"
         return error404_response_image_notfound(fileid, err)
+    """
 
 
 def convert_to_format_and_respond(fileid, image_format):
     try:
+        log_warn(image_format+ ".  req:"+str(fileid))
         converted_binary, converted_mimetype = images_service.convert_to_format_and_respond(fileid, image_format)
         response = make_response_plain(converted_binary)
         response.headers.set('Content-Type', converted_mimetype)
 
         return response
 
-    except ImageIdNotFound as imexc:
-        return error404_response_image_notfound(fileid, imexc)
+    except ImageIdNotFound as ex:
+        log_err(image_format+ ".  req:"+str(fileid))
+        return ex.response404()
 
-    except Exception as err:
-        return error404_response_image_notfound(fileid, err)
+    #except ImageIdNotFound as imexc:
+    #    return error404_response_image_notfound(fileid, imexc)
+    #except Exception as err:
+    #    return error404_response_image_notfound(fileid, err)
 
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/jpeg', methods=['GET'])
 def convert_jpeg(imgid):
-    (binary, mimetype) =  images_service.convert_jpeg(imgid)
-    response = make_response_plain(binary)
-    response.headers.set('Content-Type', mimetype)
-    return response
+    log("LJPEGG")
+    return convert_to_format_and_respond(imgid, 'jpeg')
+    """
+    try:
+        (binary, mimetype) =  images_service.convert_jpeg(imgid)
+        response = make_response_plain(binary)
+        response.headers.set('Content-Type', mimetype)
+        return response
+    except ImageIdNotFound as ex:
+        return ex.response404()
+    """
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/gif', methods=['GET'])
 def convert_gif(imgid):
-    (binary, mimetype) = images_service.convert_gif(imgid)
-    response = make_response_plain(binary)
-    response.headers.set('Content-Type', mimetype)
-    return response
+    return convert_to_format_and_respond(imgid, 'gif')
+    """
+    try:
+        (binary, mimetype) = images_service.convert_gif(imgid)
+        response = make_response_plain(binary)
+        response.headers.set('Content-Type', mimetype)
+        return response
+    except ImageIdNotFound as ex:
+        return ex.response404()
+    """
+
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/png', methods=['GET'])
 def convert_png(imgid):
-    (binary, mimetype) = images_service.convert_png(imgid)
-    response = make_response_plain(binary)
-    response.headers.set('Content-Type', mimetype)
-    return response
+    return convert_to_format_and_respond(imgid, 'png')
+    """
+    try:
+        (binary, mimetype) = images_service.convert_png(imgid)
+        response = make_response_plain(binary)
+        response.headers.set('Content-Type', mimetype)
+        return response
+    except ImageIdNotFound as ex:
+        return ex.response404()
+    """
 
 @app.route(API_ENDPOINT_URL+'/<int:imgid>/mask', methods=['GET'])
 def extract_mask_api(imgid):
-    (binary, mimetype) =  images_service.extract_mask_api(imgid)
-    response = make_response_plain(binary)
-    response.headers.set('Content-Type', mimetype)
-    return response
+    try:
+        (binary, mimetype) =  images_service.extract_mask_api(imgid)
+        response = make_response_plain(binary)
+        response.headers.set('Content-Type', mimetype)
+        return response
+    except ImageIdNotFound as ex:
+        return ex.response404()
 
 
 def check_security(original_filename):
