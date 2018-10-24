@@ -100,7 +100,7 @@ hippie()
 
 const fs = require('fs');
 
-function with_file_contents(file_name, content_callback) {
+function with_file_contents(file_name, content_callback1) {
     if (!fs.existsSync(file_name)) {
         throw new Error('file does not exist: ' + file_name);
     }
@@ -112,8 +112,15 @@ function with_file_contents(file_name, content_callback) {
         }
 
         content = data;  // <Buffer
-        content_callback(content);
+        var r = content_callback1(content);
+        /*
         //console.log(data);
+        if (then_callback2){
+            setTimeout( ()=>{
+                then_callback2(r);
+            },1000);
+        }
+        */
     });
 }
 
@@ -124,7 +131,7 @@ const BSON = require('bson');
 
 var globalresult_image_hash = -1
 
-function test_upload(file_name) {
+function test_upload(file_name, then_callback) {
     return with_file_contents(file_name, function(binary_content_buffer) {
         // binary_content_buffer: <Buffer ...>
         // binary_content {'data': [255, 216, ...], 'type': 'Buffer'}
@@ -159,7 +166,8 @@ function test_upload(file_name) {
                   }
                 }
             */
-            globalresult_image_hash = image_info['image-id'];
+            var imagehash = image_info['image-id'];
+            globalresult_image_hash = imagehash;
             var saved_fileformat = image_info['metadata']['mimetype'];
             var recovered_name = image_info['metadata']['orig-name'];
             console.log("   Saved file format: ", saved_fileformat);
@@ -168,20 +176,46 @@ function test_upload(file_name) {
             //if (recovered_name != file_name)
             //    throw Error("test failed: saved_fileformat != file_name: "+recovered_name+" != "+file_name)
             //var basename = file_name.split('/').pop()
-            console.log("Comparison:        ", recovered_name, " <> ", file_name)
+            console.log("Comparison:        ", recovered_name, " <> ", file_name);
+            // success
+            then_callback(imagehash);
         })
         .catch(
              (err) =>
-            console.log("REST sent back Exception(2):", err)
+            console.log("Upload: REST sent back Exception(2):", err)
             /*
             fetch:
                 body used already for: http://localhost:5000/progimage.com/api/v1.0/upload
             */
         );
-    })
+    },
+    0 //then_callback
+    );
 }
 
-test_upload('./images/tiny_butterfly.jpg');
+test_upload('./images/tiny_butterfly.jpg', (imagehash)=>{
+    console.log("Just uploaded ", imagehash);
+
+    /*
+    if (!fs.existsSync("./imagestore/"+imagehash+"/original.bin")) {
+        throw new Error('is not created');
+    }
+
+    hippie()
+    .base(API_BASE)
+    .delete(API+imagehash+'')
+    .expectStatus(200)
+    .end((err,res,body)=>{
+        console.log("post-DELETION");
+
+        if (fs.existsSync("./imagestore/"+imagehash+"/original.bin")) {
+            throw new Error('Was supposed to be DELETED.');
+        }
+    });
+    */
+
+
+});
 
 
 
@@ -259,6 +293,34 @@ for (i in ua)
     });
     */
 }
+
+
+
+
+
+// TESTING DELETION
+/*
+//test_upload(file_name)
+test_upload('./images/tiny_butterfly.jpg') .then((s)=>{
+    console.log("AAAAAAAAAAAAAAA1");
+})
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 console.log("=====================");
 console.log("A calm end.");

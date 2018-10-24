@@ -369,6 +369,7 @@ def incorrect_replace_image(imageid_int):
 @app.route(API_ENDPOINT_URL+'/<int:imageid_int>', methods=['DELETE'])
 def destroy_iamge(imageid_int):
     """ DELETE: Removes all current representations of the target resource given by a URL """
+    log_err("DELETE on the way.")
     folderhash = folderhash_from_imageid(imageid_int)
     del imageid_int
     ownership_proof = "DELETE s arguments"
