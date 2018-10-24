@@ -220,13 +220,14 @@ class data_consistency_checks:
         local_filename = local_foldername+'/'+FIXEDNAME_ORIGINALBINARY
         data_consistency_checks.check02(local_filename, local_foldername)
 
-def all_cached_filenames(folderhash):
+def all_cached_filenames(folderhash, cached_ones=True, essential_ones=False):
     assert type(folderhash) is str
-    # yield FIXEDNAME_ORIGINALBINARY
-    # yield FIXEDNAME_METADATAJSON
-    yield folderhash
-    for image_format in MIME_LOOKUP:
-        yield folderhash + "." + image_format
+    if essential_ones:
+        yield FIXEDNAME_ORIGINALBINARY
+        yield FIXEDNAME_METADATAJSON
+    if cached_ones:
+        for image_format in MIME_LOOKUP:
+            yield folderhash + "." + image_format
 
 """
 def delete_cached_transformations(folderhash):
@@ -261,7 +262,7 @@ def manual_cleanup(folderhash, delete_cached=False):
 
     if delete_cached:
         #delete_cached_transformations(folderhash)
-        for filename in all_cached_filenames(folderhash):
+        for filename in all_cached_filenames(folderhash, cached_ones=True, essential_ones=False):
             local_filename = local_foldername+'/'+filename
             """local_filename = local_foldername+'/'+filename"""
             if os.path.exists(local_filename):
