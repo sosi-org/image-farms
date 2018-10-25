@@ -40,7 +40,7 @@ jobs:
               python --version
               #sudo apt update &&
               sudo apt install python-pip
-              pip install virtualenv
+              sudo pip install virtualenv  # any way without sudo?
               sudo npm install -g npm@latest
               virtualenv --version
               pip --version
