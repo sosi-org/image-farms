@@ -41,10 +41,10 @@ jobs:
               #sudo apt update &&
               # todo: now docker node is used which has python2. I need to install python3 on it.
               sudo apt install python3-pip
-              sudo pip install virtualenv  # any way without sudo?
+              sudo pip3 install virtualenv  # any way without sudo?
               sudo npm install -g npm@latest
               virtualenv --version
-              pip --version
+              pip3 --version
               /usr/local/bin/npm --version
               npm --version
       - restore_cache: # special step to restore the dependency cache
