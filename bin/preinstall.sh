@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 set -e
-virtualenv -p /usr/bin/python3.5  ifarms
+# ########################################################
+# Run this after the first clone.
+# ########################################################
 
-source ./bin/reinstall
+
+bash ./bin/util/assert-right-path
+bash ./bin/util/assert-insfrastructure
+bash ./bin/util/cleanup-fresh
+pwd
+
+
+#installs python
+virtualenv -p /usr/bin/python3.5  ifarms
+./bin/reinstall.sh

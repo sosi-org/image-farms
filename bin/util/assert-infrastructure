@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+#bash ./bin/util/assert-insfrastructure
+# ###################################################
+# asserts infrastructure is ready
+# see pre-preinstall.sh
+#######################################################
+
+# also install: npm here
+# Make sure np, is installed
+npm help >/dev/null
+#Makes sure there is a python. For virtualenv
+python --version >/dev/null
+
+# Also make sure python3 is available:
+# ...
+
+# Install the `virtualenv`:
+# pip3 install virtualenv

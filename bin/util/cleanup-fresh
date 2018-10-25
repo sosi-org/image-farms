@@ -1,4 +1,11 @@
+#!/usr/bin/env bash
+
+# ###############################################################
+# Run this before the preinstall.sh If you want to start fresh.
+# Useful to simulate fresh a fresh empty docker container.
+# ###############################################################
+
+
 # remove the virtualenv and contents
 # remove the node_module
-# remove or reset the package-loc.json
-
+# remove or reset the package-lock.json

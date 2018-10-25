@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+
+# Most times, if we enter here successfully, we already asserted.
 if [ ! -d "./bin" ]; then
     echo "Run from the root of the repository. quitting."
     exit 1
@@ -11,5 +14,10 @@ if [ ! -d "./service" ]; then
     exit 1
 fi
 
+
+# todo: assert the following is installed:
+#         virtualenv
+#         flask package
+#         npm packages (on client only)
 
 exit 0

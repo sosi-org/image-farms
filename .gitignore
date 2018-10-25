@@ -106,3 +106,8 @@ venv.bak/
 
 #virtualenv
 /ifarms
+
+
+tests/node_modules/
+
+./imagestore/
