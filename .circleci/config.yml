@@ -40,6 +40,7 @@ jobs:
               python --version
               #sudo apt update &&
               # todo: now docker node is used which has python2. I need to install python3 on it.
+              sudo apt install python3.5
               sudo apt install python3-pip
               sudo pip3 install virtualenv  # any way without sudo?
               sudo npm install -g npm@latest
@@ -48,7 +49,9 @@ jobs:
               /usr/local/bin/npm --version
               npm --version
       - restore_cache: # special step to restore the dependency cache
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "package.json" }}
+          # TODO: rename folder tests to tester. It's an application. Somehow a service (not in the strict technical sense)
+          # Then add another folder for tests (python, etc)
+          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "tests/package.json" }}
           #key: dependency-cache-{{ checksum "package.json" }}
 
     #  # Download and cache dependencies
@@ -57,7 +60,7 @@ jobs:
     #      # - v1-dependencies-{{ checksum "requirements.txt" }}
     #      # # fallback to using the latest cache if no exact match is found
     #      # - v1-dependencies-
-    #      key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "package.json" }}
+    #      key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "tests/package.json" }}
 
 
       - run:
@@ -78,7 +81,7 @@ jobs:
           paths:
             - ./ifarms
             - ./node_modules
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "package.json" }}
+          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "tests/package.json" }}
 
       # run tests!
 
