@@ -9,11 +9,21 @@ jobs:
       # specify the version you desire here
       # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
       - image: circleci/python:3.6.1
+      - image: circleci/node:6.4.1
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
       # documented at https://circleci.com/docs/2.0/circleci-images/
       # - image: circleci/postgres:9.4
+
+        # My locally tested versions:
+        # npm --version
+        # 6.4.1
+        # python --version
+        # Python 2.7.12
+        # source ifarms/bin/activate
+        # python --versionPython 3.5.2
+
 
     working_directory: ~/repo
 
