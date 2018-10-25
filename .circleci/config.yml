@@ -38,7 +38,11 @@ jobs:
           command: |
               node --version
               python --version
+              pip install virtualenv
               sudo npm install -g npm@latest
+              virtualenv --version
+              /usr/local/bin/npm --version
+              npm --version
       - restore_cache: # special step to restore the dependency cache
           key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "package.json" }}
           #key: dependency-cache-{{ checksum "package.json" }}
