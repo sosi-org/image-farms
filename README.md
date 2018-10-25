@@ -13,13 +13,13 @@ source ifarms/bin/activate
 python --version
 #pip install flask
 git clone git@github.com:sosi-org/image-farms.git
-bin/reinstall.sh
+source bin/reinstall.sh
 
 ```
 
 Then: Run the server:
 ```
-source ./bin/start_service.sh
+./bin/start_service.sh &
 ```
 Finally, run the test:
 ```

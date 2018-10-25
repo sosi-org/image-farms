@@ -1,0 +1,4 @@
+# remove the virtualenv and contents
+# remove the node_module
+# remove or reset the package-loc.json
+

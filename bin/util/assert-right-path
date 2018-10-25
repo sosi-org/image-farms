@@ -1,0 +1,15 @@
+if [ ! -d "./bin" ]; then
+    echo "Run from the root of the repository. quitting."
+    exit 1
+fi
+
+if [ ! -d "./imagestore" ]; then
+    exit 1
+fi
+
+if [ ! -d "./service" ]; then
+    exit 1
+fi
+
+
+exit 0
