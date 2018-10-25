@@ -40,11 +40,17 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            python3 -m venv ifarms
-            . ifarms/bin/activate
-            #pip install -r requirements.txt
-            bin/reinstall.sh
-
+            # old:
+            #python3 -m venv ifarms
+            #. ifarms/bin/activate
+            # #pip install -r requirements.txt
+            #bin/reinstall.sh
+                # new cleaner
+                ./bin/preinstall.sh
+                ./bin/reinstall.sh
+                # # source ifarms/bin/activate   # not necessary because source is done in start_service.sh
+                #./bin/start_service.sh &
+                #./bin/test_api.sh
       - save_cache:
           paths:
             - ./ifarms
@@ -58,10 +64,15 @@ jobs:
       - run:
           name: run tests
           command: |
-            . ifarms/bin/activate
-            # python manage.py test
-            python tests/test.py
-            bin/test_api.sh
+            #old
+            #. ifarms/bin/activate
+            ## python manage.py test
+            #python tests/test.py
+            #bin/test_api.sh
+                #new:
+                 # source ifarms/bin/activate   # not necessary because source is done in start_service.sh
+                ./bin/start_service.sh &
+                ./bin/test_api.sh
 
       - store_artifacts:
           path: test-reports
