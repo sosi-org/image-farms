@@ -6,7 +6,7 @@ set -e
 
 
 bash ./bin/util/assert-right-path
-bash ./bin/util/assert-insfrastructure
+bash ./bin/util/assert-infrastructure
 bash ./bin/util/cleanup-fresh
 pwd
 

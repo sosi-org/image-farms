@@ -7,22 +7,22 @@ Continuous Integration:
 ## Instructions
 Installation steps
 1. Infra-structure:
-1.1 Install `npm` (Or make sure it is installed)
-1.2 Make sure `virtualenv` and `python3` are installed. If not, you can: `pip3 install virtualenv`
-3.
+    1. Install `npm` (Or make sure it is installed)
+    2. Make sure `virtualenv` and `python3` are installed. If not, you can: `pip3 install virtualenv`
+2. setup
 ```
 git clone git@github.com:sosi-org/image-farms.git
 cd image-farms
-./bin/preinstall.sh
-#  does: virtualenv -p /usr/bin/python3.5  ifarms
 
+./bin/preinstall.sh
+#                    does: virtualenv -p /usr/bin/python3.5  ifarms
 ./bin/reinstall.sh
-# installs flask, etc
+#                    installs flask, etc
 
 source ifarms/bin/activate
-
+#                   not literally essential. but recommended.
 ```
-
+3. Run:
 Then: Run the server: (You can also use `source ./bin/start_service.sh`)
 ```
 ./bin/start_service.sh &
