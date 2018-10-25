@@ -9,6 +9,7 @@
 # also install: npm here
 # Make sure np, is installed
 npm help >/dev/null
+node --version  >/dev/null
 #Makes sure there is a python. For virtualenv
 python --version >/dev/null
 

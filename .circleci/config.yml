@@ -23,6 +23,8 @@ jobs:
         # Python 2.7.12
         # source ifarms/bin/activate
         # python --versionPython 3.5.2
+        # node --version  >/dev/null
+        # v10.10.0
 
 
     working_directory: ~/repo
@@ -32,7 +34,9 @@ jobs:
 
       - run:
           name: update-npm
-          command: 'sudo npm install -g npm@latest'
+          command: |
+              node --version
+              sudo npm install -g npm@latest
       - restore_cache: # special step to restore the dependency cache
           key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "package.json" }}
           #key: dependency-cache-{{ checksum "package.json" }}
