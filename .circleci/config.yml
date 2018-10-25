@@ -38,11 +38,12 @@ jobs:
           command: |
               node --version
               python --version
-              #apt update && 
-              apt install python-pip
+              #sudo apt update &&
+              sudo apt install python-pip
               pip install virtualenv
               sudo npm install -g npm@latest
               virtualenv --version
+              pip --version
               /usr/local/bin/npm --version
               npm --version
       - restore_cache: # special step to restore the dependency cache
