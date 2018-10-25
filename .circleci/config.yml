@@ -36,6 +36,7 @@ jobs:
           name: update-npm
           command: |
               node --version
+              python --version
               sudo npm install -g npm@latest
       - restore_cache: # special step to restore the dependency cache
           key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "package.json" }}
