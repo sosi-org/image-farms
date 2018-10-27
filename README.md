@@ -33,6 +33,16 @@ Finally, run the test as many times as you want:
 ./bin/test_api.sh
 ```
 
+## Important suggestion
+For next task, I would use the appropriate locking mechanism when necessary.
+Although the requests are read-only, and the upload does not yield an image number until it is finished,
+but at some point a lock mechanism will be necessary.
+For example, when multiple requests are make on converting an object, one is not finished and the other request arrives.
+In that case, the produced cached image is not created. And the system may attempt to run the image generation twice.
+In such a case, a locking mechanism will be necessary.
+A simple mechanism is to generate a `Lock` object for each image created.
+There can be one for each cached sub-resource such as the converted image.
+
 
 ## Notes
 

@@ -108,8 +108,13 @@ def index():
 
 
 @app.errorhandler(ERROR_404)
-def not_found404(error):
-    return make_response_jsonified({'error': 'Not found..'}, ERROR_404)
+def not_found404(exception):
+    log_highlight(repr(exception))
+    log_highlight(str(type(exception)))
+    log_highlight(str(exception))
+    log_highlight(repr(str(exception)))
+    description='Not found..'
+    return make_response_jsonified({'error': description}, ERROR_404)
 
 
 # Not recommended in production. For test only
@@ -145,6 +150,8 @@ Test: metadata generation called only after (uploaded) file saved
 
 @app.route(API_ENDPOINT_URL+'/<int:imageid_int>/original', methods=['GET'])
 def retrieve_original(imageid_int):
+    #FIXME: make sure this is not called dutring the upload. Although by design of API it is not possible. But it may be useful for future.
+
     # from flask import send_file
     try:
         folderhash = folderhash_from_imageid(imageid_int)
@@ -188,6 +195,7 @@ def retrieve_original(imageid_int):
 
 
 def folderhash_from_imageid(imageid_int):
+    #FIXME: Should we raise ImageIdNotFound here?
     # assert int
     assert (imageid_int+2)/2 == (imageid_int)/2+1, repr(imageid_int)
 
@@ -198,6 +206,7 @@ def folderhash_from_imageid(imageid_int):
 
 
 def extract_mask(folderhash):
+    #FIXME: Lock.acquire()
     try:
         converted_binary, converted_mimetype = images_service.extract_mask(folderhash)
         response = make_response_plain(converted_binary)
@@ -224,6 +233,7 @@ def extract_mask(folderhash):
 
 
 def convert_to_format_and_respond(imageid_int, image_format):
+    #FIXME: Lock.acquire()
     #folderhash = str(imageid_int)
     folderhash = folderhash_from_imageid(imageid_int)
     del imageid_int
@@ -248,6 +258,8 @@ def convert_to_format_and_respond(imageid_int, image_format):
 
 @app.route(API_ENDPOINT_URL+'/<int:imageid_int>/jpeg', methods=['GET'])
 def convert_jpeg(imageid_int):
+    #FIXME: Lock.acquire()
+    #FIXME: catch ImageIdNotFound  and other image exceptions
     log("LJPEGG")
     #folderhash = folderhash_from_imageid(imageid_int)
     #del imageid_int
@@ -265,6 +277,8 @@ def convert_jpeg(imageid_int):
 
 @app.route(API_ENDPOINT_URL+'/<int:imageid_int>/gif', methods=['GET'])
 def convert_gif(imageid_int):
+    #FIXME: Lock.acquire()
+    #FIXME: catch ImageIdNotFound  and other image exceptions
     #folderhash = folderhash_from_imageid(imageid_int)
     #del imageid_int
     return convert_to_format_and_respond(imageid_int, 'gif')
@@ -278,9 +292,12 @@ def convert_gif(imageid_int):
         return ex.response404()
     """
 
+#FIXME: a handler for general `Exception`s that avoids purging html. It is easy to do. Suggestion: decorator. Flask may have a solution for it already.
 
 @app.route(API_ENDPOINT_URL+'/<int:imageid_int>/png', methods=['GET'])
 def convert_png(imageid_int):
+    #FIXME: Lock.acquire()
+    #FIXME: catch ImageIdNotFound  and other image exceptions
     #folderhash = folderhash_from_imageid(imageid_int)
     #del imageid_int
     return convert_to_format_and_respond(imageid_int, 'png')
@@ -296,6 +313,7 @@ def convert_png(imageid_int):
 
 @app.route(API_ENDPOINT_URL+'/<int:imageid_int>/mask', methods=['GET'])
 def extract_mask_api(imageid_int):
+    #FIXME: Lock.acquire()
     try:
         folderhash = folderhash_from_imageid(imageid_int)
         del imageid_int
@@ -380,6 +398,7 @@ def incorrect_replace_image(imageid_int):
 
 @app.route(API_ENDPOINT_URL+'/<int:imageid_int>', methods=['DELETE'])
 def destroy_iamge(imageid_int):
+    #FIXME: Lock.acquire() ? (or mark as threadsafe!)
     """ DELETE: Removes all current representations of the target resource given by a URL """
     folderhash = folderhash_from_imageid(imageid_int)
     log_highlight("DELETE on the way. on "+str(imageid_int))
